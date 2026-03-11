@@ -21,6 +21,7 @@ from .environment_manager import EnvironmentManager
 from .xpu_client import create_xpu_client, XPUClientBase
 from .llm_engine import LLMEngine
 from .verifier_agent import VerifierAgent
+from .xpu.xpu_adapter import XpuAtom, render_atom_to_commands
 
 logger = get_logger("agent")
 
@@ -43,7 +44,8 @@ class SpeculativeSetupAgent:
         self._xpu: XPUClientBase = create_xpu_client()
         self._llm: LLMEngine = LLMEngine()
 
-        # 缓存 XPU 建议
+        # XPU 建议池：{id: (suggestion, step_last_seen)}，保留最近2步内见过的建议
+        self._xpu_suggestion_pool: dict[str, tuple[XPUSuggestion, int]] = {}
         self._current_xpu_suggestions: list[XPUSuggestion] = []
         # 保存最后一次成功 verify 的 Verifier 对话轨迹，供 Phase 2 使用
         self._last_verify_messages: list[dict] = []
@@ -76,23 +78,52 @@ class SpeculativeSetupAgent:
             os_info = self._env.exec_run("cat /etc/os-release | head -2").stdout.strip()
 
             # 3. 诊断与检索 (Diagnosis & Retrieval)
-            self._current_xpu_suggestions = []
-            if self._state.last_error:
-                context = {
-                    "error": self._state.last_error,
-                    "os_release": os_info,
-                }
-                self._current_xpu_suggestions = self._xpu.query(context)
-
-            # 4. 思考 (Thought & Plan) - LLM 决策
-            action = self._llm.generate_action(
+            # 阶段A：LLM 生成情境描述（无论是否有 last_error，每步必触发）
+            situation = self._llm.describe_situation(
                 history=self._state.get_recent_history(),
-                xpu_suggestions=self._current_xpu_suggestions,
                 cwd=cwd,
                 os_info=os_info,
                 last_error=self._state.last_error,
-                failed_suggestion_ids=self._state.failed_suggestions,
             )
+            # 阶段B：双路检索，情境描述 + error 原文叠加，去重合并
+            suggestions_by_situation = self._xpu.query({
+                "query": situation,
+                "os_release": os_info,
+            })
+            if self._state.last_error:
+                suggestions_by_error = self._xpu.query({
+                    "error": self._state.last_error,
+                    "os_release": os_info,
+                })
+                for s in suggestions_by_error:
+                    if s.id not in {x.id for x in suggestions_by_situation}:
+                        suggestions_by_situation.append(s)
+
+            # 更新跨步建议池：新建议加入，过期（超过2步未见）的移除
+            current_step = self._state.step
+            for s in suggestions_by_situation:
+                self._xpu_suggestion_pool[s.id] = (s, current_step)
+            self._xpu_suggestion_pool = {
+                sid: (s, step)
+                for sid, (s, step) in self._xpu_suggestion_pool.items()
+                if current_step - step <= 1  # 保留本步和上一步的建议
+            }
+            self._current_xpu_suggestions = [s for s, _ in self._xpu_suggestion_pool.values()]
+
+            # 4. 思考 (Thought & Plan) - LLM 决策
+            try:
+                action = self._llm.generate_action(
+                    history=self._state.get_recent_history(),
+                    xpu_suggestions=self._current_xpu_suggestions,
+                    cwd=cwd,
+                    os_info=os_info,
+                    last_error=self._state.last_error,
+                    failed_suggestion_ids=self._state.failed_suggestions,
+                )
+            except Exception as e:
+                logger.warning(f"LLM 决策失败（可能是 API 异常或响应截断）: {e}，跳过本步")
+                self._state.step += 1
+                continue
 
             logger.info(f"决策: {action}")
 
@@ -107,7 +138,11 @@ class SpeculativeSetupAgent:
                 self._handle_set_env(action)
 
             elif action.action_type == ActionType.ROLLBACK_ENV:
-                self._handle_rollback_env(action)
+                try:
+                    self._handle_rollback_env(action)
+                except RuntimeError as e:
+                    logger.error(f"容器不可恢复，退出主循环: {e}")
+                    break
 
             elif action.action_type == ActionType.VERIFY:
                 verified = self._handle_verify(action)
@@ -118,8 +153,8 @@ class SpeculativeSetupAgent:
                 self._handle_finish(action)
                 break
 
-        # 关闭 LLM 和 XPU 连接，但保留容器
-        self._close_clients()
+        # 关闭 LLM 连接，XPU 连接保留（main.py 在 _store_xpu_experience 后关闭）
+        self._llm.close()
         # 清理快照镜像释放磁盘，验证阶段不需要回滚
         self._env.cleanup_snapshots()
 
@@ -215,13 +250,40 @@ class SpeculativeSetupAgent:
             })
             return
 
+        # 优先使用 atoms 执行（类型感知），兜底使用 commands（字符串列表）
+        # 关键：set_env atom 必须调用 self._env.set_env() 而非 exec_run("export ...")
+        # 原因：exec_run 每次启动新 shell，export 的环境变量立即失效
         success = True
         logs: list[CommandResult] = []
-        for cmd in suggestion.commands:
-            result = self._env.exec_run(cmd)
-            logs.append(result)
-            if not result.success:
-                success = False
+        exec_atoms = suggestion.atoms if suggestion.atoms else [
+            {"name": "shell", "args": {"cmd": cmd}} for cmd in suggestion.commands
+        ]
+        for atom in exec_atoms:
+            name = atom.get("name", "shell")
+            args = atom.get("args", {})
+            if name == "set_env":
+                key = args.get("key") or args.get("var", "")
+                value = args.get("value", "")
+                if key:
+                    self._env.set_env(key, value)
+                    self._state.env_vars[key] = value
+                    logs.append(CommandResult(
+                        command=f"set_env {key}={value}",
+                        exit_code=0,
+                        stdout=f"[SET_ENV 已持久化] {key}={value}",
+                        stderr="",
+                    ))
+                    logger.info(f"XPU set_env 持久化: {key}={value}")
+                continue
+            # 其余 atom 类型均渲染为 shell 命令执行
+            cmds = render_atom_to_commands(XpuAtom(name=name, args=args))
+            for cmd in cmds:
+                result = self._env.exec_run(cmd)
+                logs.append(result)
+                if not result.success:
+                    success = False
+                    break
+            if not success:
                 break
 
         # C. 验证与归因 (Verification & Attribution)
@@ -260,7 +322,11 @@ class SpeculativeSetupAgent:
             self._state.last_error = error_before  # 恢复原错误
         else:
             logger.info(f"XPU 建议 {suggestion.id} 验证通过")
-            self._state.last_error = None
+            # 用最后一条命令的 stderr 更新 last_error：
+            # 若有 stderr 说明执行后仍有后续问题，保留以便下一步触发 XPU 查询；
+            # 若 stderr 为空（干净成功），则清空，避免 stdout 安装日志污染 XPU 检索
+            last_stderr = logs[-1].stderr if logs else ""
+            self._state.last_error = last_stderr if last_stderr else None
         # 无论成功失败，都标记为"已尝试"，防止 LLM 对同一条建议无限循环
         self._state.record_failed_suggestion(suggestion.id)
 
@@ -299,14 +365,24 @@ class SpeculativeSetupAgent:
         })
 
     def _handle_rollback_env(self, action: AgentAction) -> None:
-        """处理 ROLLBACK_ENV 动作：回滚容器到最近快照"""
+        """处理 ROLLBACK_ENV 动作：回滚容器到最近快照
+        若新容器启动失败，容器已不可用，标记任务失败并终止主循环。
+        """
         try:
             success = self._env.rollback_to_checkpoint()
             status = "成功" if success else "失败（无可用快照）"
         except Exception as e:
             logger.error(f"[ROLLBACK_ENV] 基础设施异常: {e}")
-            success = False
-            status = f"失败（基础设施异常: {e}）"
+            # 旧容器已删除、新容器启动失败，env 不可用，必须终止
+            self._state.add_to_history({
+                "action": action.to_dict(),
+                "result": {
+                    "exit_code": 1,
+                    "stdout": f"[ROLLBACK_ENV] 容器不可恢复，任务终止: {e}",
+                    "stderr": "",
+                },
+            })
+            raise RuntimeError(f"[ROLLBACK_ENV] 容器不可恢复，终止任务: {e}") from e
         logger.info(f"[ROLLBACK_ENV] 回滚 {status}")
         self._state.add_to_history({
             "action": action.to_dict(),

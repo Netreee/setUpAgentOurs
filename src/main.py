@@ -53,18 +53,21 @@ def _store_xpu_experience(
     prosecution: "ProsecutionResult | None",
     judgment: "dict | None",
 ) -> None:
-    """Phase 2 结束后统一触发 XPU 经验提取与入库"""
+    """Phase 2 结束后统一触发 XPU 经验提取与入库。
+    completed=True：正常提取，phase2_context 含检察官/法官信号。
+    completed=False（超时）：也提取，phase2_context=None——
+        超时轨迹往往含最有价值的失败模式（循环依赖、废弃包、包不存在等），
+        不提取是浪费。
+    """
     from .xpu_client import VectorXPUClient
     if not isinstance(xpu_client, VectorXPUClient):
         return
-    if not setup_result.completed:
+    if not setup_result.history:
+        logger.debug("[XPU Store] 轨迹为空，跳过经验存储")
         return
 
     try:
         traj = _build_traj_from_history(setup_result.history)
-        if not traj:
-            logger.debug("[XPU Store] 轨迹为空，跳过经验存储")
-            return
 
         # 构造 phase2_context
         phase2_context = None
@@ -114,6 +117,9 @@ def _store_xpu_experience(
                 return
 
             logger.info(f"[XPU Store] LLM 提取出 {len(xpu_objects)} 条经验，逐条入库")
+            for i, xpu_obj in enumerate(xpu_objects):
+                advice = xpu_obj.get("advice_nl", [])
+                logger.info(f"[XPU Store] 经验[{i+1}] id={xpu_obj.get('id')} advice={advice}")
 
             from .xpu.xpu_adapter import XpuEntry, XpuAtom
             from .xpu.xpu_vector_store import build_xpu_text, text_to_embedding
@@ -221,6 +227,8 @@ def main() -> int:
         prosecution=prosecution,
         judgment=judgment,
     )
+    if hasattr(agent._xpu, "close"):
+        agent._xpu.close()
 
     # ── 清理容器 ──
     agent.env.destroy()

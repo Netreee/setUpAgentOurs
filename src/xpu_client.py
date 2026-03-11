@@ -308,12 +308,16 @@ class VectorXPUClient(XPUClientBase):
         # 补充导入，解决作用域问题
         from .xpu.xpu_adapter import XpuAtom
 
-        error_text = context.get("error", "") or context.get("error_log", "")
-        if not error_text:
-            return []
+        query_text = (
+            context.get("query")            # 情境描述（新路径，优先）
+            or context.get("error", "")     # 兼容旧路径
+            or context.get("error_log", "")
+        )
+        if not query_text:
+            query_text = "python 项目环境配置，通用建议"  # 兜底，不再短路返回 []
 
         try:
-            embedding = self._text_to_embedding(error_text)
+            embedding = self._text_to_embedding(query_text)
             results = self._store.search(embedding, k=3, min_similarity=0.3)
         except Exception as e:
             logger.warning(f"VectorXPUClient 查询失败: {e}")
@@ -340,6 +344,7 @@ class VectorXPUClient(XPUClientBase):
                 commands=commands,
                 confidence=similarity,
                 source="vector_db",
+                atoms=atoms,  # 保留原始结构，用于类型感知执行（如 set_env）
             )
             suggestions.append(suggestion)
             result_ids.append(xpu_id)

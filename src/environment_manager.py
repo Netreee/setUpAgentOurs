@@ -173,7 +173,7 @@ class EnvironmentManager:
         # 相比 shell prefix（KEY=VAL cmd），此方式对整个 bash 进程及其所有子命令均可见，
         # 不受 && 链分隔符影响，且 echo $KEY 可正确返回值
         exit_code, output = self.container.exec_run(
-            cmd=["timeout", str(timeout), "bash", "-c", exec_command],
+            cmd=["/usr/bin/timeout", str(timeout), "bash", "-c", exec_command],
             demux=True,
             environment=self._env_vars if self._env_vars else None,
         )
@@ -225,35 +225,40 @@ class EnvironmentManager:
         return self._env_vars.get(key)
 
     def create_checkpoint(self, tag: str) -> str:
-        """创建快照（按 blueprint 1.1 节定义）"""
-        logger.info(f"创建快照: {tag}")
+        """创建快照（按 blueprint 1.1 节定义）
+        tag 自动加容器 ID 前缀，避免多 worker 并发时全局 tag 冲突。
+        """
+        # 用容器 ID 前 8 位隔离不同 worker 的快照
+        scoped_tag = f"{self._container.id[:8]}_{tag}"
+        logger.info(f"创建快照: {scoped_tag}")
 
-        # 使用 docker commit 创建镜像
-        image = self.container.commit(repository="setup_agent_checkpoint", tag=tag)
+        image = self.container.commit(repository="setup_agent_checkpoint", tag=scoped_tag)
 
-        # 压入快照栈
-        self._history_snapshots.append(tag)
+        self._history_snapshots.append(scoped_tag)
         logger.info(f"快照已创建: {image.id[:12]}，栈深度: {len(self._history_snapshots)}")
 
         return image.id
 
     def rollback_to_checkpoint(self) -> bool:
-        """回滚到最近的快照（按 blueprint 1.1 节定义：弹出栈顶）"""
+        """回滚到最近的快照（按 blueprint 1.1 节定义：弹出栈顶）
+        若启动新容器失败，立即 raise 通知调用方容器已不可用。
+        """
         if not self._history_snapshots:
             logger.warning("没有可用的快照，无法回滚")
             return False
 
-        # 弹出最近的快照
         tag = self._history_snapshots.pop()
         logger.info(f"回滚到快照: {tag}")
 
-        # 停止并删除当前容器
-        old_container_id = self.container.id
-        self.container.stop()
-        self.container.remove()
-        logger.debug(f"已删除旧容器: {old_container_id[:12]}")
+        # 先清空引用，防止启动失败后 self._container 仍指向已删除的旧容器
+        old_container = self._container
+        self._container = None
 
-        # 从快照镜像创建新容器
+        old_container.stop()
+        old_container.remove()
+        logger.debug(f"已删除旧容器: {old_container.id[:12]}")
+
+        # 从快照镜像创建新容器；失败则 raise，调用方不应继续执行
         image_name = f"setup_agent_checkpoint:{tag}"
         self._container = self._client.containers.run(
             image_name,

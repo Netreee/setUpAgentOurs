@@ -335,6 +335,13 @@ def build_traj_prompt(
         "\n    【conda 虚拟环境中，pip install 的包可能对 conda 不可见】"
         "\n- verifier_summary 可辅助判断——测试实际失败的原因比 agent 推测更可信。"
         "\n- 一条 XPU 只解决一个根因，不混合多个不相关问题。"
+        "\n- situation_triggers 是让未来查询能命中此条经验的关键，务必填写具体场景，不要写抽象词语（如\"安装失败\"）。"
+        "\n  例：[\"poetry 项目\", \"pyproject.toml 含 [tool.poetry]\", \"误用 pip install 代替 poetry install\"]"
+        "\n- 【对超时/失败轨迹同样适用】失败轨迹中最有价值的模式往往是："
+        "\n    1. agent 反复循环却未收敛的操作——例如逐个安装依赖后 verify，应一次批量收集所有缺包再安装"
+        "\n    2. 废弃包/版本断崖的识别——某包最新版不兼容当前 Python/框架，应降版本或放弃"
+        "\n    3. 某包在当前 Python 版本下没有可用实现（如 PyPI 只有 Python 2 版本），需记录包名及替代方案"
+        "\n    这类踩坑经验对未来 agent 规避相同陷阱极为关键，必须提炼。"
         "\n"
         "\n回答必须是严格的 JSON 对象，不包含任何多余文字。"
     )
@@ -356,12 +363,31 @@ def build_traj_prompt(
             "signals": {
                 "regex": ["匹配该错误的正则表达式"],
                 "keywords": ["用于粗略检索的关键词"],
+                "situation_triggers": (
+                    "2-4 条字符串，描述「在什么项目/工具/状态下」这条经验适用，"
+                    "例：[\"poetry 项目\", \"pyproject.toml 含 [tool.poetry]\", \"误用 pip install 代替 poetry install\"]，"
+                    "越具体越好，用于向量检索召回"
+                ),
             },
             "advice_nl": ["1-5 条中文建议，解释问题根因和修复思路"],
             "atoms": [
                 {
-                    "name": "原子操作类型，如 pip_install / pip_pin / or_upgrade_pkg / set_env / set_umask 等",
-                    "args": "一个字典，包含该原子需要的参数",
+                    "name": (
+                        "【必须且只能使用以下名称之一，禁止自造名称】\n"
+                        "  pip_install   — args: {name: '包名或.或.[extra]', spec: '>=1.0', flags: []}\n"
+                        "  pip_pin       — args: {name: '包名', spec: '==1.2.3'}\n"
+                        "  apt_install   — args: {packages: ['pkg1', 'pkg2']}\n"
+                        "  shell         — args: {cmd: '任意 bash 命令'}  ← 以上不够用时的通用兜底\n"
+                        "  set_env       — args: {key: 'VAR', value: 'val'}\n"
+                        "  set_umask     — args: {value: '0o022'}\n"
+                        "  set_django_setting — args: {key: 'SETTING', value: 'val'}\n"
+                        "  or_upgrade_pkg     — args: {name: '包名', min_version: '1.0'}\n"
+                        "  conda_install — args: {packages: ['pkg']}\n"
+                        "  npm_install   — args: {packages: ['pkg']}\n"
+                        "  set_pytest_flag    — args: {name: '--flag', value: 'val'}\n"
+                        "  adjust_command     — args: {cmd: '修正后的完整命令'}"
+                    ),
+                    "args": "按照上方对应 name 的格式填写",
                 }
             ],
         },

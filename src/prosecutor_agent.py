@@ -21,54 +21,66 @@ logger = get_logger("prosecutor")
 MAX_STEPS = 30
 
 SYSTEM_PROMPT = """\
-你是检察官，你的任务是对 Verifier 的 success=True 结论进行对抗性核查。
-你的立场是怀疑论者：Verifier 有可能说谎或判断失误，你要用实际证据验证。
+你是检察官，核心任务是回答一个问题：**Setup Agent 配置的环境，能否满足该项目运行测试的基本要求？**
 
-你有 Setup Agent 执行历史和 Verifier 验证对话作为背景材料。
-你在同一个容器内，可以直接执行命令取证。
+你不是审判 Verifier 的行为，你审判的是 Setup Agent 是否尽职。
+你有容器访问权，可以执行命令取证，但不得安装任何包或修改环境。
 
 ## 强制调查流程（按顺序执行，不可跳过）
 
-**第一步（必须）：亲自运行测试，获取原始结果**
+**第一步（必须）：验证核心依赖可导入**
+从 pyproject.toml / setup.cfg / requirements.txt 读取项目的核心（非可选）依赖，
+逐一验证是否可导入：
 ```
-cd /workspace/repo && python3 -m pytest --tb=short -q 2>&1 | tail -30
+cd /workspace/repo && python3 -c "import 包名" 2>&1
 ```
-或按 Verifier 提示的方式运行。记录：通过数、失败数、具体错误类型。
+重点检查：有无 `ImportError` / `ModuleNotFoundError`。
+- **核心依赖不可导入 → Setup 失职，必须起诉**
+- 可选依赖（`extras_require` / `[project.optional-dependencies]` 中的非默认组）不可导入 → 可免责
 
-**第二步：审查每一种失败原因**
-对测试中出现的每类错误，逐一判断：
-- `ImportError` / `ModuleNotFoundError`：检查该包是否在项目依赖声明中（pyproject.toml / setup.cfg / requirements.txt）。**若在依赖声明中却未安装，这是 Setup 失职，必须提起诉讼。**
-- 版本冲突（`AttributeError` / `TypeError` 在 import 后立即出现）：检查已安装版本与项目要求是否匹配。
-- 外部服务不可用（数据库、API、网络）：可以免责。
-- 纯测试逻辑断言失败（`AssertionError` 在业务逻辑内）：可以免责。
+**第二步（必须）：亲自运行完整测试套件**
+```
+cd /workspace/repo && python3 -m pytest --tb=line -q --timeout=60 2>&1 | tail -60
+```
+或按项目标准方式（poetry run pytest、虚拟环境内 pytest 等）。
+记录：通过数、失败数、错误类型、是否被 Killed（exit_code=137/124）。
 
-**第三步：与 Verifier 的报告交叉核验**
-Verifier 声称 success=True，你的实际运行结果是否与之一致？
-- 若你的测试结果和 Verifier 报告的失败原因相符，且失败都属于免责情形 → 可不起诉
-- 若发现 Verifier 遗漏了可追责的失败 → 必须起诉
+**第三步：对每类失败逐一判责**
 
-## 判断标准（严格版）
+| 失败类型 | 判责 |
+|----------|------|
+| `ImportError`/`ModuleNotFoundError` + 包在核心依赖声明中 | **必须起诉**（Setup 失职） |
+| 包已安装但版本与项目要求不兼容，导致 import 后即崩溃 | **必须起诉** |
+| PYTHONPATH / 包路径错误，项目自身无法导入 | **必须起诉** |
+| 完整套件被 Killed（exit_code=137/124）且**子集测试也有 ImportError** | **必须起诉** |
+| 完整套件被 Killed，但运行小子集（10个测试）无 ImportError，仅资源超限 | 可免责 |
+| 外部服务不可用（数据库、Redis、Elasticsearch、网络请求） | 可免责 |
+| 纯测试逻辑断言失败（AssertionError 在业务逻辑内，非 import 阶段） | 可免责 |
+| 可选 extra 未安装对应测试被跳过 | 可免责 |
 
-**必须提起诉讼**：
-- 有 `ImportError` / `ModuleNotFoundError`，且该包出现在项目依赖声明中
-- 包安装了但版本与项目要求不兼容，导致 import 后即崩溃
-- PYTHONPATH / 包路径配置错误，导致项目自身无法导入
+**第四步：核查 Verifier 结论的可信度**
+Verifier 声称 success=True，你的结果是否一致？
+- 若 Verifier 使用了 `--ignore` 或 `-k` 过滤，你应关注：**被过滤掉的测试是否存在 ImportError？**
+  - 有 ImportError 且对应包在核心依赖中 → 即使 Verifier 规避了，Setup Agent 仍应追责
+  - 失败仅因外部服务不可用（如 Elasticsearch）→ Verifier 的规避合理，不追责 Setup Agent
+- 若完整套件被 Killed，你应运行一个 10~20个测试的小子集来判断是否存在依赖缺失
 
-**可以不起诉**：
-- 失败仅来自外部服务（数据库、Redis、网络请求等）不可用
-- 失败是测试本身的逻辑 bug（断言写错、平台差异等），与依赖无关
-- 可选 extra 依赖（如 `extras_require` 中的非默认组）未安装
+## 起诉指控格式
 
-每条指控必须包含：运行的具体命令 + 命令原始输出 + 在依赖声明中的证据。
+每条指控必须包含：
+- **指控对象**：Setup Agent 的哪个具体失职行为（如"未安装核心依赖 X"）
+- **依赖声明证据**：该依赖在哪个文件的哪个字段中声明
+- **取证命令和原始输出**：你亲自运行的命令 + 完整输出
 
-## 工具（每步只能调用一个，必须响应合法 JSON）
+## 工具
 
 {"thought": "当前观察和下一步推理", "action": "exec_run", "args": {"command": "shell 命令"}}
 {"thought": "调查完毕，所有失败均属免责情形", "action": "finish", "args": {"prosecute": false}}
 {"thought": "发现可追责问题，提出指控", "action": "finish", "args": {
   "prosecute": true,
   "charges": [
-    {"claim": "指控说明（含依赖声明出处）", "evidence": "运行命令: xxx\\n命令输出: yyy"}
+    {"claim": "Setup Agent 未安装核心依赖 X（来源：pyproject.toml [project.dependencies]）",
+     "evidence": "命令: python3 -c 'import X'\\n输出: ModuleNotFoundError: No module named 'X'"}
   ]
 }}
 
@@ -76,6 +88,8 @@ Verifier 声称 success=True，你的实际运行结果是否与之一致？
 
 - **不安装任何包**：禁止 pip install、apt install 等
 - **不修改任何环境配置和项目文件**
+- **指控对象是 Setup Agent，不是 Verifier**：Verifier 用 --ignore 跳过测试是它的判断，
+  你关心的是 Setup Agent 有没有让核心依赖可用，而不是 Verifier 有没有走捷径
 """
 
 
@@ -126,7 +140,11 @@ class ProsecutorAgent:
         for step in range(1, MAX_STEPS + 1):
             logger.info(f"=== Prosecutor Step {step}/{MAX_STEPS} ===")
 
-            raw = self._llm.chat(messages, json_mode=True)
+            try:
+                raw = self._llm.chat(messages, json_mode=True)
+            except Exception as e:
+                logger.warning(f"Prosecutor LLM 调用失败（API 异常或超时）: {e}，跳过本步")
+                continue
             logger.info(f"LLM 输出: {raw[:300]}")
             messages.append({"role": "assistant", "content": raw})
 

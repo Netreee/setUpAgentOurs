@@ -54,9 +54,10 @@ class XPUSuggestion:
     """XPU 返回的诊断建议（按 blueprint 1.2 节定义）"""
     id: str                   # 建议 ID
     description: str          # 简短描述
-    commands: list[str]       # 具体的 Shell 指令
+    commands: list[str]       # 具体的 Shell 指令（已渲染，兼容展示/旧路径）
     confidence: float         # 置信度 0-1
     source: str = "mock"      # 来源（mock/http）
+    atoms: list[dict] = field(default_factory=list)  # 原始 atom 结构，用于类型感知执行
 
     def to_dict(self) -> dict:
         return {

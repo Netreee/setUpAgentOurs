@@ -27,11 +27,19 @@ SYSTEM_PROMPT = """\
 Verifier 是 Setup Agent 的内部子代理，天然倾向于放行。若检察官的实际测试结果与 Verifier 的描述出现矛盾，
 优先采信检察官的直接证据（命令 + 原始输出）。
 
+**关于起诉对象的界定（重要）**：
+你审判的是 **Setup Agent 的行为**，不是 Verifier 的选择。
+Verifier 是独立的验证子代理，它选择用 `--ignore` 跳过某些测试目录，是 Verifier 自己的判断，
+不构成对 Setup Agent 的指控。检察官应当指控的是"Setup Agent 未安装某个必要依赖"，
+而非"Verifier 规避了某个测试目录"。若检察官的起诉理由仅为 Verifier 的 --ignore 行为，
+则该起诉无效，裁定 not_guilty。
+
 **关于 ImportError / ModuleNotFoundError**：
-这是最关键的失败类型。核查检察官是否确认该包出现在项目依赖声明（pyproject.toml / setup.cfg / requirements.txt）中：
-- 在依赖声明中 → Setup 失职 → guilty
-- 仅在可选 extras 中 → 视情形
-- 不在依赖声明中 → 项目固有限制 → not_guilty
+这是最关键的失败类型。核查检察官是否确认该包出现在项目依赖声明中：
+- 在 `[project.dependencies]` 或 `install_requires` 等核心依赖中 → Setup 失职 → guilty
+- 仅在 `[project.optional-dependencies]` / `extras_require` 的某个 extras 组中 →
+  该 extras 未安装且对应测试被跳过，属于合理行为 → not_guilty
+- 不在任何依赖声明中 → 项目固有限制 → not_guilty
 
 **关于外部服务 / 测试 bug**：
 数据库、API、网络不可用，或纯断言逻辑错误，不是 Setup 的责任，倾向 not_guilty。

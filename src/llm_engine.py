@@ -171,10 +171,19 @@ Signal that the task is complete. **ONLY call after a successful VERIFY.**
    **Each suggestion can only be used ONCE per run.** Once used (success or fail), it is
    removed from the list and cannot be retried. If you need to adapt the commands, write
    a SHELL_COMMAND yourself instead of repeating the same TRY_XPU_SUGGESTION ID.
+   **IMPORTANT — verify preconditions before adopting any XPU suggestion:**
+   XPU suggestions are retrieved by semantic similarity and may not perfectly match the
+   current situation. Before acting on a suggestion, confirm its preconditions hold.
+   For example: a suggestion about `poetry install` only applies if the project actually
+   uses Poetry (check for `poetry.lock`); a suggestion about `pip install -e '.[all]'`
+   only applies if `[project.optional-dependencies]` exists in pyproject.toml.
+   If the precondition is not met, ignore the suggestion and use SHELL_COMMAND instead.
 4. Default to SHELL_COMMAND when in doubt.
 5. Only call VERIFY when you are confident the environment is ready. Until then, diagnose
    with SHELL_COMMAND.
 6. Always explain WHY you chose the action in the "thought" field.
+7. **避免重复失败**：如果同一条命令（或实质相同的命令）在最近2步内已执行过且失败，
+   不要再重试。必须改变思路（换参数、换方案、或彻底放弃该路径）。
 
 ---
 
@@ -206,6 +215,58 @@ You MUST respond in JSON format with this schema:
 }}
 """
 
+    SITUATION_PROMPT = (
+        "你是环境配置 Agent 的情境感知模块。"
+        "根据当前工作历史，用2-3句中文描述当前情境，内容要便于检索相关经验：\n"
+        "1. 项目特征：语言、包管理器（pip/poetry/conda）、依赖文件类型\n"
+        "2. 已完成的操作和当前卡点（有错误则描述错误类型，无错误则描述在做什么）\n"
+        "3. 下一步意图\n"
+        "只输出纯文本描述，不输出 JSON，不超过150字。\n"
+        "【严格约束】只描述历史中实际执行过的命令和观察到的文件，禁止推断未见过的工具名。"
+        "例如：只有在历史中确认运行过 poetry 命令或观察到 poetry.lock 时，才能写\"使用 Poetry\"；"
+        "否则只写\"使用 pip\"或\"包管理器未知\"。"
+    )
+
+    def describe_situation(
+        self,
+        history: list[dict],
+        cwd: str,
+        os_info: str,
+        last_error: str | None,
+    ) -> str:
+        """阶段A：生成当前情境描述，用于 XPU 向量检索"""
+        recent = history[-5:]
+        lines = []
+        for entry in recent:
+            if "action" in entry:
+                a = entry["action"]
+                lines.append(f"动作: {a.get('action_type','')} {a.get('command','')[:80]}")
+            if "result" in entry:
+                r = entry["result"]
+                out = (r.get("stdout") or "")[:100]
+                err = (r.get("stderr") or "")[:100]
+                lines.append(f"结果(exit={r.get('exit_code','')}): {out or err}")
+
+        history_text = "\n".join(lines) if lines else "（无历史记录，任务刚开始）"
+        error_text = f"\n当前错误: {last_error[:200]}" if last_error else ""
+
+        messages = [
+            {"role": "system", "content": self.SITUATION_PROMPT},
+            {"role": "user", "content": (
+                f"工作目录: {cwd}\nOS: {os_info}{error_text}\n\n"
+                f"最近操作历史:\n{history_text}"
+            )},
+        ]
+
+        try:
+            situation = self._client.chat(messages, json_mode=False).strip()
+        except Exception as e:
+            logger.warning(f"情境描述生成失败: {e}")
+            situation = last_error[:150] if last_error else "python 项目环境配置"
+
+        logger.info(f"[情境描述] {situation[:100]}")
+        return situation
+
     def __init__(self):
         config = get_config()
 
@@ -235,8 +296,12 @@ You MUST respond in JSON format with this schema:
         for s in suggestions:
             if s.id in failed_ids:
                 continue  # 跳过已失败的建议
-            # Layer 1：始终展示自然语言建议
-            ref_lines.append(f"- [{s.id}] {s.description}")
+            # Layer 1：自然语言参考知识
+            # commands 非空时才显示 ID（否则显示 ID 会诱导 Agent 尝试 TRY_XPU_SUGGESTION）
+            if s.commands:
+                ref_lines.append(f"- [{s.id}] {s.description}")
+            else:
+                ref_lines.append(f"- {s.description}")
             # Layer 2：只有 commands 非空才展示为可执行选项
             if s.commands:
                 exec_lines.append(

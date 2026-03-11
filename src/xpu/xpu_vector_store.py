@@ -121,6 +121,8 @@ def build_xpu_text(entry: XpuEntry) -> str:
         parts.append(f"Keywords: {', '.join(signals['keywords'])}")
     if signals.get("regex"):
         parts.append(f"Error patterns: {', '.join(signals['regex'])}")
+    if signals.get("situation_triggers"):
+        parts.append(f"Situation: {'; '.join(signals['situation_triggers'])}")
 
     if entry.advice_nl:
         parts.append("Advice: " + " ".join(entry.advice_nl))
