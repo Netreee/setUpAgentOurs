@@ -46,12 +46,11 @@ def create_xpu_table(conn) -> None:
             );
         """)
 
-        # 创建向量相似度搜索索引
+        # HNSW 索引：对小规模数据集（<1000条）比 IVFFlat 更准确，无需调 lists 参数
         cur.execute("""
-            CREATE INDEX IF NOT EXISTS xpu_entries_embedding_idx
+            CREATE INDEX IF NOT EXISTS xpu_entries_embedding_hnsw_idx
             ON xpu_entries
-            USING ivfflat (embedding vector_cosine_ops)
-            WITH (lists = 100);
+            USING hnsw (embedding vector_cosine_ops);
         """)
 
         conn.commit()
@@ -200,9 +199,6 @@ class XpuVectorStore:
         conn = self._get_conn()
         try:
             with conn.cursor() as cur:
-                # 设置 IVFFlat 探测数，避免数据量少时索引漏检
-                cur.execute("SET ivfflat.probes = 10")
-
                 # 构建 WHERE 子句（上下文过滤）
                 where_clauses = []
                 where_params = []

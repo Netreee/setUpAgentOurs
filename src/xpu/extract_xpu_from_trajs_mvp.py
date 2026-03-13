@@ -353,7 +353,6 @@ def build_traj_prompt(
         "commands_history_text": commands_text,
         "error_snippets_text": errors_text,
         "xpu_schema": {
-            "id": "string，唯一标识，如 xpu_env_py_xxx",
             "context": {
                 "lang": "例如 python",
                 "os": ["相关操作系统，如 linux 等"],
@@ -397,7 +396,7 @@ def build_traj_prompt(
             "当 decision='skip' 时，表示整条轨迹没有任何值得提炼的经验，xpus 为空数组 []。"
             "当 decision='xpu' 时，xpus 是一个数组，包含一条或多条与 xpu_schema 兼容的 XPU 对象，"
             "每条 XPU 对应轨迹中一个独立的环境问题及其修复方案。"
-            "每条 XPU 的 id 必须唯一（如 xpu_env_py_001, xpu_env_py_002）。"
+            "不要生成 id 字段，系统会自动分配唯一 ID。"
             "所有说明性文字使用简体中文。"
         ),
         "language": cfg.get("llm_language", "zh"),

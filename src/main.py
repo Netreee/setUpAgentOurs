@@ -6,9 +6,11 @@
 """
 
 import json
+import os
 import shutil
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -22,27 +24,40 @@ logger = get_logger("main")
 
 
 def _build_traj_from_history(history: list[dict]) -> list[dict]:
-    """将 agent history 转为 JSONL 格式
-    assistant 消息包装 bash 命令；system 消息包装 stderr/stdout
-    """
+    """将 agent history 转为 JSONL 格式，保留完整信息供 LLM 提取经验"""
     traj = []
     for entry in history:
         action = entry.get("action", {})
         result = entry.get("result", {})
 
+        # 保留 agent 的推理（辅助 LLM 理解上下文）
+        thought = action.get("thought", "")
         cmd = action.get("content", {}).get("command")
         if cmd:
+            parts = []
+            if thought:
+                parts.append(f"思考: {thought}")
+            parts.append(f"```bash\n{cmd}\n```")
             traj.append({
                 "role": "assistant",
-                "content": f"执行命令:\n```bash\n{cmd}\n```"
+                "content": "\n".join(parts),
             })
 
         if result:
-            output = result.get("stderr") or result.get("stdout") or ""
-            if output:
+            # 同时保留 stdout 和 stderr，附带 exit_code
+            exit_code = result.get("exit_code", "?")
+            stdout = result.get("stdout") or ""
+            stderr = result.get("stderr") or ""
+            parts = [f"exit_code={exit_code}"]
+            if stdout:
+                parts.append(f"stdout:\n{stdout}")
+            if stderr:
+                parts.append(f"stderr:\n{stderr}")
+            output = "\n".join(parts)
+            if output.strip() != f"exit_code={exit_code}":
                 traj.append({
                     "role": "system",
-                    "content": output
+                    "content": output,
                 })
     return traj
 
@@ -117,19 +132,21 @@ def _store_xpu_experience(
                 return
 
             logger.info(f"[XPU Store] LLM 提取出 {len(xpu_objects)} 条经验，逐条入库")
-            for i, xpu_obj in enumerate(xpu_objects):
-                advice = xpu_obj.get("advice_nl", [])
-                logger.info(f"[XPU Store] 经验[{i+1}] id={xpu_obj.get('id')} advice={advice}")
 
             from .xpu.xpu_adapter import XpuEntry, XpuAtom
             from .xpu.xpu_vector_store import build_xpu_text, text_to_embedding
             from .xpu.xpu_dedup import dedup_and_store
 
             for i, xpu_obj in enumerate(xpu_objects):
+                # 系统自动生成唯一 ID，忽略 LLM 返回的 id（LLM 总是生成 xpu_env_py_001 导致覆盖）
+                auto_id = f"xpu_{int(time.time())}_{os.urandom(3).hex()}"
+                advice = xpu_obj.get("advice_nl", [])
+                logger.info(f"[XPU Store] 经验[{i+1}] auto_id={auto_id} advice={advice}")
+
                 atoms = [XpuAtom(name=a.get("name", ""), args=a.get("args", {}))
                          for a in xpu_obj.get("atoms", [])]
                 xpu_entry = XpuEntry(
-                    id=xpu_obj.get("id"),
+                    id=auto_id,
                     context=xpu_obj.get("context", {}),
                     signals=xpu_obj.get("signals", {}),
                     advice_nl=xpu_obj.get("advice_nl", []),

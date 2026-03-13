@@ -242,16 +242,7 @@ def dedup_and_store(
     existing_id = existing["id"]
     similarity = existing.get("similarity", 0)
 
-    # --- 同 ID → 覆盖更新 ---
-    if existing_id == entry.id:
-        store.upsert_entry(entry, embedding)
-        return {
-            "action": "new",
-            "xpu_id": entry.id,
-            "reason": f"覆盖更新已有经验 {entry.id}",
-        }
-
-    # --- 不同 ID 但相似 → 去重逻辑 ---
+    # --- 相似经验存在 → LLM 去重判断（无论 ID 是否相同） ---
     new_entry_dict = {
         "id": entry.id,
         "context": entry.context,

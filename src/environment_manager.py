@@ -216,7 +216,22 @@ class EnvironmentManager:
 
     def set_env(self, key: str, value: str) -> None:
         """设置环境变量。变量存入 _env_vars，后续每次 exec_run 均通过
-        Docker 原生 environment 参数注入，对整个 bash 进程及所有子命令可见。"""
+        Docker 原生 environment 参数注入，对整个 bash 进程及所有子命令可见。
+
+        特殊处理：如果 value 中包含 $PATH / $HOME 等变量引用，
+        先在容器内通过 echo 展开为实际值，避免 Docker environment 参数
+        不做 shell 展开导致 PATH 被覆盖为字面量 "$PATH"。
+        """
+        import re
+        if re.search(r'\$\w+|\$\{[^}]+\}', value):
+            logger.info(f"SET_ENV 检测到变量引用，在容器内展开: {key}={value}")
+            result = self.exec_run(f'echo "{value}"')
+            if result.success and result.stdout.strip():
+                expanded = result.stdout.strip()
+                logger.info(f"SET_ENV 展开结果: {key}={expanded}")
+                value = expanded
+            else:
+                logger.warning(f"SET_ENV 变量展开失败，使用原始值: {key}={value}")
         self._env_vars[key] = value
         logger.info(f"设置环境变量: {key}={value}")
 
