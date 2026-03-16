@@ -91,11 +91,29 @@ def _store_xpu_experience(
             verifier_text = ""
             for m in verifier_msgs:
                 verifier_text += str(m.get("content", ""))
+
+            # 构建检察官调查轨迹摘要（命令+结果+推理，保留因果链）
+            prosecutor_investigation = ""
+            if prosecution.messages:
+                inv_parts = []
+                for msg in prosecution.messages:
+                    role = msg.get("role", "")
+                    content = msg.get("content", "")
+                    if role == "system":
+                        continue
+                    if role == "assistant":
+                        inv_parts.append(f"[检察官] {content[:400]}")
+                    elif role == "user":
+                        inv_parts.append(f"[取证结果] {content[:400]}")
+                # 保留最后30条（约15个 action-result 对），覆盖关键调查步骤
+                prosecutor_investigation = "\n".join(inv_parts[-30:])
+
             phase2_context = {
                 "prosecution_charges": prosecution.charges,
                 "verdict": judgment["verdict"] if judgment else None,
                 "judge_reasoning": judgment["reasoning"] if judgment else "",
-                "verifier_summary": verifier_text[:500],
+                "verifier_summary": verifier_text[:1000],
+                "prosecutor_investigation": prosecutor_investigation[:4000],
             }
 
         tmp_dir = Path(tempfile.mkdtemp(prefix="xpu_agent_"))
@@ -236,14 +254,14 @@ def main() -> int:
         phase2_reason = f"Setup Agent 超时（{setup_result.steps_taken} 步），未主动 FINISH"
         logger.info(f"Setup 未完成，跳过 Phase 2: {phase2_reason}")
 
-    # ── XPU 经验提取（所有信号就绪后统一触发）──
-    logger.info("=== XPU 经验提取 ===")
-    _store_xpu_experience(
-        xpu_client=agent._xpu,
-        setup_result=setup_result,
-        prosecution=prosecution,
-        judgment=judgment,
-    )
+    # ── XPU 经验提取（暂时禁用在线提取，只用现有 XPU 辅助；后续改为离线 pipeline）──
+    # logger.info("=== XPU 经验提取 ===")
+    # _store_xpu_experience(
+    #     xpu_client=agent._xpu,
+    #     setup_result=setup_result,
+    #     prosecution=prosecution,
+    #     judgment=judgment,
+    # )
     if hasattr(agent._xpu, "close"):
         agent._xpu.close()
 

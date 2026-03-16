@@ -72,7 +72,7 @@ Verifier 声称 success=True，你的结果是否一致？
 - **依赖声明证据**：该依赖在哪个文件的哪个字段中声明
 - **取证命令和原始输出**：你亲自运行的命令 + 完整输出
 
-## 工具
+## 工具（每步必须输出一个合法 JSON 对象）
 
 {"thought": "当前观察和下一步推理", "action": "exec_run", "args": {"command": "shell 命令"}}
 {"thought": "调查完毕，所有失败均属免责情形", "action": "finish", "args": {"prosecute": false}}
@@ -137,14 +137,19 @@ class ProsecutorAgent:
             {"role": "user", "content": first_user_msg},
         ]
 
+        successful_steps = 0
+        api_failures = 0
+
         for step in range(1, MAX_STEPS + 1):
             logger.info(f"=== Prosecutor Step {step}/{MAX_STEPS} ===")
 
             try:
                 raw = self._llm.chat(messages, json_mode=True)
             except Exception as e:
-                logger.warning(f"Prosecutor LLM 调用失败（API 异常或超时）: {e}，跳过本步")
+                api_failures += 1
+                logger.warning(f"Prosecutor LLM 调用失败（API 异常或超时）: {e}，跳过本步（累计失败 {api_failures} 次）")
                 continue
+            successful_steps += 1
             logger.info(f"LLM 输出: {raw[:300]}")
             messages.append({"role": "assistant", "content": raw})
 
@@ -191,7 +196,17 @@ class ProsecutorAgent:
                 logger.warning(obs)
                 messages.append({"role": "user", "content": obs})
 
-        logger.warning("Prosecutor 达到最大步数，默认不起诉")
+        if successful_steps == 0:
+            logger.error(f"Prosecutor 全部 {MAX_STEPS} 步 LLM 调用均失败（API failures={api_failures}），标记为调查失败")
+            self._llm.close()
+            return ProsecutionResult(
+                prosecute=True,
+                charges=[{"claim": "检察官调查失败：LLM API 全部不可用，无法完成调查",
+                          "evidence": f"共 {MAX_STEPS} 步全部因 API 异常跳过，无有效调查结果"}],
+                messages=list(messages),
+            )
+
+        logger.warning(f"Prosecutor 达到最大步数（成功步数={successful_steps}），默认不起诉")
         self._llm.close()
         return ProsecutionResult(
             prosecute=False,

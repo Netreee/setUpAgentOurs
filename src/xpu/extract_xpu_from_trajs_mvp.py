@@ -329,10 +329,20 @@ def build_traj_prompt(
         "\n【提炼原则（必须遵守）】"
         "\n- prosecution_charges 是因果关系最清晰的知识来源，优先从中提炼。"
         "\n- 即便 verdict=guilty，也应提炼其中可泛化的模式。"
-        "\n- 禁止记录仓库特定事实，例如【该仓库需要 jmespath 包】——对其他仓库无用。"
-        "\n- 应记录工具/框架层面的可泛化模式，例如："
+        "\n- 允许记录三类经验（按优先级）："
+        "\n  1.【工具链模式】构建工具/包管理器层面的规律，例如："
         "\n    【pyproject.toml 含 [tool.poetry] 时，必须用 poetry install 而非 pip install -r】"
         "\n    【conda 虚拟环境中，pip install 的包可能对 conda 不可见】"
+        "\n  2.【包级安装模式】特定 Python 包的已知安装陷阱，这类知识在不同仓库遇到同一个包时都适用，例如："
+        "\n    【psycopg2 需要系统库 libpq-dev，否则编译失败；或改用 psycopg2-binary】"
+        "\n    【lxml 编译需要 libxml2-dev libxslt1-dev】"
+        "\n    【numpy/scipy 在没有预编译 wheel 时需要 gfortran 和 libopenblas-dev】"
+        "\n    【某包 X 的最新版不兼容 Python 3.10，需降版本到 X==1.2.3】"
+        "\n  3.【环境配置模式】系统级配置/权限/路径问题，例如："
+        "\n    【pip install --user 的包不在 PATH 中，需要 export PATH=$HOME/.local/bin:$PATH】"
+        "\n    【Docker 容器内缺少 locale 设置，某些包 import 时会因 UnicodeError 崩溃】"
+        "\n- 禁止记录的唯一类型：纯粹的仓库特定事实，即【该仓库需要包 X】但不解释 WHY（为什么 X 安装有坑）。"
+        "\n  判断标准：如果去掉仓库名，这条经验对其他用到相同包/工具的仓库是否仍然有用？有用则记录，否则丢弃。"
         "\n- verifier_summary 可辅助判断——测试实际失败的原因比 agent 推测更可信。"
         "\n- 一条 XPU 只解决一个根因，不混合多个不相关问题。"
         "\n- situation_triggers 是让未来查询能命中此条经验的关键，务必填写具体场景，不要写抽象词语（如\"安装失败\"）。"
@@ -408,6 +418,7 @@ def build_traj_prompt(
             "verdict": phase2_context.get("verdict"),
             "judge_reasoning": phase2_context.get("judge_reasoning", ""),
             "verifier_summary": phase2_context.get("verifier_summary", ""),
+            "prosecutor_investigation": phase2_context.get("prosecutor_investigation", ""),
         }
 
     return [
