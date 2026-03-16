@@ -34,6 +34,21 @@ SYSTEM_PROMPT = """\
 ```
 cd /workspace/repo && python3 -c "import 包名" 2>&1
 ```
+**注意：pip 包名和 Python import 名经常不同！** 测试前必须使用正确的 import 名：
+- beautifulsoup4 → `import bs4`
+- GitPython / gitpython → `import git`
+- Pillow / pillow → `import PIL`
+- PyYAML / pyyaml → `import yaml`
+- attrs → `import attr`
+- SecretStorage → `import secretstorage`
+- scikit-learn → `import sklearn`
+- opencv-python → `import cv2`
+- python-dateutil → `import dateutil`
+- docker-py → `import docker`
+- python-dotenv → `import dotenv`
+如果不确定某个包的 import 名，先执行 `pip show 包名` 查看安装位置，
+或 `python3 -c "import importlib; print(importlib.import_module('可能的名字'))"` 试探。
+
 重点检查：有无 `ImportError` / `ModuleNotFoundError`。
 - **核心依赖不可导入 → Setup 失职，必须起诉**
 - 可选依赖（`extras_require` / `[project.optional-dependencies]` 中的非默认组）不可导入 → 可免责
