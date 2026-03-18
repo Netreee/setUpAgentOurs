@@ -282,9 +282,10 @@ def evaluate_repo(
         # 用 bash source 执行脚本（和 envBench 的 python_build.sh 一致）
         # set +e 防止单条命令失败导致整体退出
         # 执行完后 dump 环境变量到文件，供检察官继承
+        # trap EXIT 确保即使 bootstrap 脚本含 set -e 导致提前退出，env dump 也会执行
         exec_cmd = (
-            f"cd {container_repo_path} && set +e && source bootstrap_script.sh 2>&1; echo EXIT_CODE=$?; "
-            f"env > /tmp/_bootstrap_env.txt"
+            f"cd {container_repo_path} && trap 'env > /tmp/_bootstrap_env.txt' EXIT && "
+            f"source bootstrap_script.sh 2>&1; echo EXIT_CODE=$?"
         )
         exit_code, output = exec_in_container(container_id, exec_cmd, timeout=600)
         # 脚本本身的 exit code 从输出尾部提取
@@ -326,6 +327,7 @@ def evaluate_repo(
                 setup_history,
                 verify_messages,
                 prosecution,
+                env=env,
             ).rule()
             result["verdict"] = judgment["verdict"]
             result["reason"] = judgment["reasoning"]

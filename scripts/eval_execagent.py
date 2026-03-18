@@ -241,11 +241,12 @@ def evaluate_repo(project_name: str, project_dir: Path) -> dict:
                 capture_output=True, check=True,
             )
             exec_in_container(container_id, f"chmod +x {repo_dir}/{install_sh.name}", timeout=10)
-            # 用 source 而非 bash 执行，这样 install.sh 中的 source venv/bin/activate、
-            # export PATH 等效果会保留在当前 shell，env dump 才能捕获到
+            # 用 source 执行以保留 venv/activate 等环境变量。
+            # 关键：install.sh 可能含 set -e，会覆盖外层 set +e 并在失败时杀掉整个 shell，
+            # 导致后面的 env dump 永远不执行。解决：用 trap EXIT 确保 env dump 一定执行。
             exit_code, output = exec_in_container(
                 container_id,
-                f"cd {repo_dir} && set +e && source {install_sh.name} 2>&1; echo EXIT_CODE=$?; env > /tmp/_install_env.txt",
+                f"cd {repo_dir} && trap 'env > /tmp/_install_env.txt' EXIT && source {install_sh.name} 2>&1; echo EXIT_CODE=$?",
                 timeout=1200,
             )
             result["install_ok"] = True
