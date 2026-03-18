@@ -252,6 +252,28 @@ class EnvironmentManager:
         """获取环境变量"""
         return self._env_vars.get(key)
 
+    def get_env_snapshot(self) -> str:
+        """获取容器环境快照，供检察官/法官了解当前环境状态。
+        类似 Setup Agent 每步执行前的 pwd/ls，让 agent 在调查前感知环境。"""
+        cmd = (
+            "echo '--- Python 解释器 ---' && "
+            "which python3 python 2>/dev/null; python3 --version 2>/dev/null; "
+            "echo '--- 虚拟环境 ---' && "
+            "ls -d */venv */env */.venv venv .venv env 2>/dev/null || echo '(未发现)'; "
+            "echo \"VIRTUAL_ENV=$VIRTUAL_ENV\"; "
+            "echo \"CONDA_PREFIX=$CONDA_PREFIX\"; "
+            "echo '--- PATH ---' && echo \"$PATH\"; "
+            "echo '--- 项目标记文件 ---' && "
+            "ls pyproject.toml setup.py setup.cfg requirements.txt "
+            "CMakeLists.txt Makefile configure meson.build "
+            "package.json Cargo.toml go.mod pom.xml build.gradle 2>/dev/null || echo '(无)'; "
+            "echo '--- 工作目录 ---' && pwd && ls | head -30"
+        )
+        result = self.exec_run(cmd, timeout=15)
+        if result.success:
+            return result.stdout[:2000]
+        return f"(快照获取失败: exit_code={result.exit_code})"
+
     def create_checkpoint(self, tag: str) -> str:
         """创建快照（按 blueprint 1.1 节定义）
         tag 自动加容器 ID 前缀，避免多 worker 并发时全局 tag 冲突。
