@@ -282,6 +282,7 @@ def evaluate_repo(project_name: str, project_dir: Path) -> dict:
                 setup_history,
                 verify_messages,
                 prosecution,
+                env=env,
             ).rule()
             result["verdict"] = judgment["verdict"]
             result["reason"] = judgment["reasoning"]
