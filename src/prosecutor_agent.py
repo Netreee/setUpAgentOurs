@@ -196,11 +196,17 @@ class ProsecutorAgent:
         """执行调查，返回 ProsecutionResult"""
         logger.info("检察官开始调查")
 
+        # 环境快照：让检察官在调查前感知容器的实际状态
+        # （类似 Setup Agent 每步的 pwd/ls，避免盲目用系统 python3 检查 venv 内的依赖）
+        env_snapshot = self._env.get_env_snapshot()
+        logger.info(f"环境快照:\n{env_snapshot[:300]}")
+
         # 构造调查背景
         setup_summary = self._format_setup_history()
         verify_summary = self._format_verify_messages()
 
         first_user_msg = (
+            f"## 容器环境快照\n\n```\n{env_snapshot}\n```\n\n"
             f"## Setup Agent 执行轨迹（最近20步）\n\n{setup_summary}\n\n"
             f"## in-loop Verifier 验证对话\n\n{verify_summary}\n\n"
             "请开始调查，判断 Setup Agent 配置的环境是否存在实质性问题。"

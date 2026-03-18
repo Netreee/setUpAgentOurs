@@ -48,7 +48,7 @@ SYSTEM_PROMPT = """\
 - 有 ≥1 条指控经你验证确认成立 → **guilty**
 - 所有指控均被驳回 → **not_guilty**
 
-## 输出格式
+## 输出格式（每步必须输出一个合法 JSON 对象）
 
 对每条指控，先验证再判定。全部验证完后输出最终裁决：
 
@@ -117,10 +117,15 @@ class JudgeAgent:
         # 最大步数 = 每条指控 2 次验证 + 最终裁决的余量
         max_steps = len(charges) * MAX_VERIFY_PER_CHARGE + 3
 
+        # 环境快照：让法官在验证前感知容器状态（可能发现检察官遗漏的 venv 等）
+        env_snapshot = self._env.get_env_snapshot()
+        logger.info(f"法官环境快照:\n{env_snapshot[:300]}")
+
         prosecution_summary = self._format_prosecution()
         setup_summary = self._format_setup_history()
 
         user_content = (
+            f"## 容器环境快照\n\n```\n{env_snapshot}\n```\n\n"
             f"## Setup Agent 执行轨迹（最近20步）\n\n{setup_summary}\n\n"
             f"## 检察官起诉书（共 {len(charges)} 条指控）\n\n{prosecution_summary}\n\n"
             f"请逐条验证以上指控。每条指控你可以执行最多 {MAX_VERIFY_PER_CHARGE} 条验证命令。"
@@ -132,14 +137,23 @@ class JudgeAgent:
             {"role": "user", "content": user_content},
         ]
 
-        for step in range(1, max_steps + 1):
-            logger.info(f"=== Judge Step {step}/{max_steps} ===")
+        effective_step = 0
+        api_failures = 0
+        for step in range(1, max_steps * 3 + 1):  # 给足重试空间
+            if effective_step >= max_steps:
+                break
+            logger.info(f"=== Judge Step {effective_step+1}/{max_steps} (raw={step}) ===")
 
             try:
                 raw = self._llm.chat(messages, json_mode=True)
             except Exception as e:
-                logger.warning(f"Judge LLM 调用失败: {e}")
+                api_failures += 1
+                logger.warning(f"Judge LLM 调用失败（不计步数）: {e}，累计API失败={api_failures}")
+                if api_failures >= 5:
+                    logger.error("Judge API 连续失败过多，中止验证")
+                    break
                 continue
+            effective_step += 1
 
             logger.info(f"LLM 输出: {raw[:300]}")
             messages.append({"role": "assistant", "content": raw})
@@ -194,14 +208,15 @@ class JudgeAgent:
             if parsed.get("action") == "verdict":
                 self._llm.close()
                 return {
-                    "verdict": parsed["args"].get("verdict", "not_guilty"),
+                    "verdict": parsed["args"].get("verdict", "guilty"),
                     "reasoning": parsed["args"].get("reasoning", "步数上限"),
                 }
         except Exception as e:
             logger.error(f"强制裁决失败: {e}")
 
         self._llm.close()
-        return {"verdict": "not_guilty", "reasoning": "审判达到步数上限，证据不足以定罪"}
+        # 检察官已起诉且法官无法完成验证 → 维持起诉（guilty），而非默认放人
+        return {"verdict": "guilty", "reasoning": "法官验证未完成（API失败或步数上限），维持检察官起诉"}
 
     def _paper_trial(self) -> dict:
         """纸面审判（无容器，向后兼容）"""
@@ -217,7 +232,7 @@ class JudgeAgent:
             "- 依赖仅在可选 extras 中，非核心依赖\n"
             "- 失败原因是外部服务/网络/测试逻辑 bug\n"
             "- 检察官可能用错了环境（系统 python3 vs 项目 venv）\n\n"
-            "输出格式：{\"verdict\": \"guilty\"|\"not_guilty\", \"reasoning\": \"裁决依据\"}"
+            "输出格式（合法 JSON 对象）：{\"verdict\": \"guilty\"|\"not_guilty\", \"reasoning\": \"裁决依据\"}"
         )
 
         user_content = (
