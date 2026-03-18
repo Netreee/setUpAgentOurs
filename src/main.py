@@ -242,6 +242,7 @@ def main() -> int:
                 setup_result.history,
                 setup_result.last_verify_messages,
                 prosecution,
+                env=agent.env,
             ).rule()
             phase2_success = (judgment["verdict"] == "not_guilty")
             phase2_reason = judgment["reasoning"]
