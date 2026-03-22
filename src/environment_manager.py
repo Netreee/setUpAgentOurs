@@ -36,6 +36,7 @@ class EnvironmentManager:
         self._container: Container | None = None
         self._config = get_config().docker
         self._env_vars: dict[str, str] = {}
+        self._repo_dir_override: str | None = None
         # 使用栈结构存储快照（按 blueprint 要求）
         self._history_snapshots: list[str] = []
         # 启动时清理上次进程崩溃/被 kill 遗留的 checkpoint 镜像
@@ -79,6 +80,15 @@ class EnvironmentManager:
     def history_snapshots(self) -> list[str]:
         """获取快照历史栈"""
         return self._history_snapshots.copy()
+
+    def attach(self, container_id: str, repo_dir: str | None = None) -> None:
+        """接管已有容器（不创建新容器、不克隆仓库）。
+        repo_dir: 仓库在容器内的完整路径，若指定则 exec_run 默认 cd 到此路径。
+        """
+        self._container = self._client.containers.get(container_id)
+        if repo_dir:
+            self._repo_dir_override = repo_dir
+        logger.info(f"已接管容器: {self._container.id[:12]}, repo_dir={repo_dir or 'default'}")
 
     def create_container(self, repo_url: str) -> str:
         """创建并启动容器"""
@@ -159,7 +169,10 @@ class EnvironmentManager:
 
         # 确定工作目录
         if work_dir is None:
-            work_dir = f"{self._config.work_dir}/repo"
+            if self._repo_dir_override:
+                work_dir = self._repo_dir_override
+            else:
+                work_dir = f"{self._config.work_dir}/repo"
 
         # 构造执行命令
         if work_dir == "/":
