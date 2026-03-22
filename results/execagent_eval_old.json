@@ -1,0 +1,192 @@
+[
+  {
+    "repo": "ccache",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装满足项目要求的 CMake 版本（来源：CMakeLists.txt 要求 cmake_minimum_required(VERSION 3.18)）",
+        "evidence": "命令: cmake --version\n输出: cmake version 3.16.3\n命令: cd /app/ccache/build && make\n输出: make: *** No targets specified and no makefile found.  Stop."
+      },
+      {
+        "claim": "Setup Agent 未构建项目可执行文件（ccache），导致测试无法运行",
+        "evidence": "命令: ls -la /app/ccache/ccache\n输出: ls: cannot access 'ccache': No such file or directory\n命令: ./test/run\n输出: ./app/ccache/test/suites/base.bash: line 7: /app/ccache/ccache: No such file or directory"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "Setup Agent 未安装 CMake 3.18（实际为 3.16.3），违反项目依赖要求，导致构建失败，测试无法运行。"
+  },
+  {
+    "repo": "distcc",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 distcc_pump_c_extensions（来源：include_server/setup.py ext_modules）",
+        "evidence": "命令: cd /app/distcc && python3 -c \"import sys; sys.path.insert(0, './include_server'); import include_server\"\n输出: Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"/app/distcc/./include_server/include_server.py\", line 42, in <module>\n    import distcc_pump_c_extensions\nModuleNotFoundError: No module named 'distcc_pump_c_extensions'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "检察官证据显示 distcc_pump_c_extensions 模块导入失败，该模块在项目依赖中，Setup Agent 未安装导致核心功能不可用，构成失职。"
+  },
+  {
+    "repo": "cpython",
+    "build_ok": true,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "评估异常: Command '['docker', 'exec', '0b6f7d531da54f03372f4bb9a7c06fb5da3b6e36b88ff2bcdd8c383bc8128150', 'bash', '-c', 'cd /app && bash install.sh 2>&1; env > /tmp/_install_env.txt']' timed out after 1200 seconds"
+  },
+  {
+    "repo": "ansible",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "django",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "flask",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "git",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "jsonc",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "libevent",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "json",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装 Python 环境，导致核心依赖 PyYAML、watchdog、jinja2 无法导入（来源：/app/json/tools/serve_header/requirements.txt 和 /app/json/tools/generate_natvis/requirements.txt）",
+        "evidence": "命令: which python3\n输出: Python not found\n命令: python3 -c 'import yaml'\n输出: bash: python3: command not found"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "Setup Agent 未安装 Python 环境，导致核心依赖 PyYAML 等无法导入，违反基本配置职责。"
+  },
+  {
+    "repo": "openvpn",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "keras",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "opencv",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 opencv Python 绑定（cv2），导致 ImportError（来源：/app/opencv/modules/python/package/setup.py 定义包 'opencv'，但 import 名 'cv2' 未正确安装）",
+        "evidence": "命令: python3 -c 'import cv2'\n输出: ModuleNotFoundError: No module named 'cv2'\n命令: python3 ./apps/python_app_test.py\n输出: Traceback (most recent call last): ... ModuleNotFoundError: No module named 'cv2'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "检察官确认核心依赖 cv2 未安装，导致 ImportError，Setup Agent 失职。"
+  },
+  {
+    "repo": "pytest",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 iniconfig（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: cd /app/pytest && python3 -c 'import iniconfig'\n输出: Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'iniconfig'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 packaging（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: cd /app/pytest && python3 -c 'import packaging'\n输出: Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'packaging'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pluggy（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: cd /app/pytest && python3 -c 'import pluggy'\n输出: Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'pluggy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pygments（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: cd /app/pytest && python3 -c 'import pygments'\n输出: Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'pygments'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "检察官指控 Setup Agent 未安装 iniconfig、packaging、pluggy、pygments 四个核心依赖，证据显示导入失败。这些依赖在 pyproject.toml 的 [project.dependencies] 中，属于 Setup Agent 的职责范围，构成失职。"
+  },
+  {
+    "repo": "scikit-learn",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 scikit-learn（来源：pyproject.toml [project] name = 'scikit-learn'），导致项目无法导入自身",
+        "evidence": "命令: cd /app/scikit-learn && python3 -c \"import sklearn\" 2>&1\n输出: ImportError: No module named 'sklearn.__check_build._check_build'\nIt seems that scikit-learn has not been built correctly."
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "Setup Agent 未正确安装 scikit-learn 核心依赖，导致项目自身无法导入，违反了基本安装职责。"
+  },
+  {
+    "repo": "pandas",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  }
+]
