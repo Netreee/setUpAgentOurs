@@ -294,6 +294,14 @@ def main() -> int:
             logger.info("容器已销毁")
         except Exception as e:
             logger.warning(f"容器销毁失败: {e}")
+        # 清理快照镜像释放磁盘（每个快照 2-7GB，批量跑时必须及时清理）
+        if snapshot_tag:
+            try:
+                import docker as _docker
+                _docker.from_env().images.remove(snapshot_tag, force=True)
+                logger.info(f"快照镜像已清理: {snapshot_tag}")
+            except Exception as e:
+                logger.debug(f"快照镜像清理失败（不影响结果）: {e}")
 
     # ── 阶段3: Report ──
     logger.info("=== 阶段3: Report（结果输出）===")
