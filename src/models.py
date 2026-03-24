@@ -206,6 +206,8 @@ class SetupResult:
             "completed": self.completed,
             "steps_taken": self.steps_taken,
             "final_message": self.final_message,
+            "history": self.history,
+            "last_verify_messages": self.last_verify_messages,
         }
 
 

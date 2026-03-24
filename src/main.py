@@ -205,19 +205,9 @@ def main() -> int:
         f"steps={setup_result.steps_taken}, container={setup_result.container_id[:12]}"
     )
 
-    # ── 保存 Phase 1 容器快照（docker commit），供 Phase 2/3 独立重跑 ──
     log_dir = Path("log")
     log_dir.mkdir(exist_ok=True)
     safe_name = repo_url.rstrip("/").split("/")[-1]
-    snapshot_tag = f"phase1_snapshot:{safe_name}"
-
-    try:
-        container = agent.env.container
-        container.commit(repository="phase1_snapshot", tag=safe_name)
-        logger.info(f"Phase 1 容器快照已保存: {snapshot_tag}")
-    except Exception as e:
-        logger.warning(f"容器快照保存失败（不影响后续流程）: {e}")
-        snapshot_tag = ""
 
     # ── 阶段2: Phase 2 诉讼裁决 ──
     logger.info("=== 阶段2: Phase 2 诉讼裁决 ===")
@@ -294,21 +284,12 @@ def main() -> int:
             logger.info("容器已销毁")
         except Exception as e:
             logger.warning(f"容器销毁失败: {e}")
-        # 清理快照镜像释放磁盘（每个快照 2-7GB，批量跑时必须及时清理）
-        if snapshot_tag:
-            try:
-                import docker as _docker
-                _docker.from_env().images.remove(snapshot_tag, force=True)
-                logger.info(f"快照镜像已清理: {snapshot_tag}")
-            except Exception as e:
-                logger.debug(f"快照镜像清理失败（不影响结果）: {e}")
 
     # ── 阶段3: Report ──
     logger.info("=== 阶段3: Report（结果输出）===")
     report = {
         "repo_url": repo_url,
         "setup": setup_result.to_dict(),
-        "phase1_snapshot": snapshot_tag,
         "phase2": {
             "success": phase2_success,
             "reason": phase2_reason,
@@ -329,7 +310,6 @@ def main() -> int:
     print(f"Setup: {'完成' if setup_result.completed else '未完成'} ({setup_result.steps_taken} 步)")
     print(f"Phase2: {verdict_str}")
     print(f"裁决原因: {phase2_reason}")
-    print(f"快照: {snapshot_tag or '(无)'}")
     print(f"详细结果: {output_path}")
     print(f"{'='*50}")
 
