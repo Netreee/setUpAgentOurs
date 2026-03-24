@@ -90,17 +90,19 @@ class VerifierAgent:
     4. 重复直到 LLM 输出 finish 或达到最大步数
     """
 
-    def __init__(self, env: EnvironmentManager, max_steps: int = MAX_STEPS, setup_summary: str = ""):
+    def __init__(self, env: EnvironmentManager, max_steps: int = MAX_STEPS, setup_summary: str = "", hint: str = ""):
         """初始化 Verifier Agent
 
         Args:
             env: Docker 环境管理器，用于在容器内执行命令
             max_steps: 最大执行步数（默认 30），防止 LLM 无限循环
             setup_summary: Setup Agent 的交接信息（可选），告诉 Verifier 环境是怎么搭建的
+            hint: Setup Agent 传递的验证提示（可选），如特定的 pytest 参数
         """
         self._env = env  # Docker 环境管理器实例
         self._max_steps = max_steps  # 最大步数限制
         self._setup_summary = setup_summary  # Setup Agent 的交接摘要
+        self._hint = hint  # 验证提示
         self._llm = self._build_llm_client()  # 初始化 LLM 客户端
 
     def _build_llm_client(self):
@@ -137,7 +139,10 @@ class VerifierAgent:
 
         # 如果有 Setup Agent 的交接信息，作为第一条用户消息告知 Verifier
         # 注明"仅供参考，你仍需独立验证"，避免 Verifier 盲目信任
-        if self._setup_summary:
+        if self._hint:
+            logger.info(f"[Verifier] 收到验证提示: {self._hint}")
+            first_user_msg = f"Setup Agent 提示：{self._hint}\n\n请开始验证。"
+        elif self._setup_summary:
             logger.info(f"[Verifier] 收到 Setup 交接信息: {self._setup_summary}")
             first_user_msg = (
                 f"Setup Agent 交接信息（仅供参考，你仍需独立验证）：\n{self._setup_summary}\n\n请开始验证。"
@@ -185,7 +190,7 @@ class VerifierAgent:
                 hint = str(args.get("hint", ""))  # 验证说明/证据
                 collect_count = int(args.get("collect_count", 0))  # 收集到的测试数量
                 test_framework = str(args.get("test_framework", "unknown"))  # 使用的测试框架
-                logger.info(f"验证完成: success={success}, hint={hint}")
+                logger.info(f"验证完成: success={success}, finish_hint={hint}")
                 self._llm.close()  # 关闭 LLM 客户端
                 return VerifyResult(
                     success=success,
@@ -195,6 +200,7 @@ class VerifierAgent:
                     exit_code=0 if success else 1,
                     stdout=hint,  # hint 作为 stdout 返回
                     stderr="",
+                    messages=list(messages),  # 完整对话轨迹，供 Phase 2 审查
                 )
 
             # ── exec_run 动作：在容器中执行命令 ──
@@ -245,6 +251,7 @@ class VerifierAgent:
             exit_code=-1,
             stdout="",
             stderr=f"verifier 达到最大步数 {self._max_steps}",
+            messages=list(messages),
         )
 
     def _write_file(self, path: str, content: str) -> bool:

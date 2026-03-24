@@ -57,6 +57,7 @@ class XPUSuggestion:
     commands: list[str]       # 具体的 Shell 指令
     confidence: float         # 置信度 0-1
     source: str = "mock"      # 来源（mock/http）
+    atoms: list[dict] = field(default_factory=list)  # 原始 atom 结构，用于类型感知执行
 
     def to_dict(self) -> dict:
         return {
@@ -113,6 +114,7 @@ class AgentAction:
     env_key: str | None = None                # SET_ENV 时的变量名
     env_value: str | None = None              # SET_ENV 时的变量值
     message: str | None = None                # FINISH 时的消息
+    verify_hint: str | None = None            # VERIFY 时给 Verifier 的运行提示
 
     def to_dict(self) -> dict:
         result = {
@@ -130,6 +132,8 @@ class AgentAction:
             result["content"]["env_value"] = self.env_value
         elif self.action_type == ActionType.FINISH:
             result["content"]["message"] = self.message
+        if self.verify_hint:
+            result["content"]["hint"] = self.verify_hint
         return result
 
     def __str__(self) -> str:
@@ -192,6 +196,7 @@ class SetupResult:
     steps_taken: int
     final_message: str
     history: list[dict] = field(default_factory=list)  # 完整执行历史
+    last_verify_messages: list[dict] = field(default_factory=list)  # 最后一次成功 verify 的对话轨迹
 
     def to_dict(self) -> dict:
         return {
@@ -204,6 +209,23 @@ class SetupResult:
 
 
 @dataclass
+class ProsecutionResult:
+    """检察官调查结果"""
+    prosecute: bool                            # 是否提起诉讼
+    charges: list[dict] = field(default_factory=list)   # [{claim, evidence}, ...]
+    messages: list[dict] = field(default_factory=list)  # Prosecutor 执行轨迹
+
+
+@dataclass
+class Phase2Result:
+    """Phase 2 诉讼裁决结果"""
+    success: bool
+    reason: str
+    prosecution: "ProsecutionResult | None" = None
+    judge_reasoning: str = ""
+
+
+@dataclass
 class VerifyResult:
     """验证阶段结果"""
     success: bool                    # pytest 是否成功
@@ -213,6 +235,7 @@ class VerifyResult:
     exit_code: int
     stdout: str
     stderr: str
+    messages: list[dict] = field(default_factory=list)  # Verifier 内部完整对话，供 Phase 2 审查
 
     def to_dict(self) -> dict:
         return {

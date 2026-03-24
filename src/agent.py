@@ -65,6 +65,8 @@ class SpeculativeSetupAgent:
         )
         # 创建 Docker 容器环境管理器（负责容器的创建、命令执行、快照回滚）
         self._env: EnvironmentManager = EnvironmentManager()
+        # 最后一次成功 verify 的对话轨迹，供 Phase 2（Prosecutor）审查
+        self._last_verify_messages: list[dict] = []
         # 根据配置创建 XPU 客户端（VectorXPUClient / HTTPXPUClient / MockXPUClient）
         self._xpu: XPUClientBase = create_xpu_client()
         # 初始化 LLM 推理引擎（ARK 或 OpenAI 兼容接口）
@@ -210,6 +212,7 @@ class SpeculativeSetupAgent:
             steps_taken=self._state.step,
             final_message=self._state.final_message or "达到最大迭代次数，任务未完成",
             history=self._state.history,
+            last_verify_messages=self._last_verify_messages,
         )
 
     # =========================================================================
@@ -445,7 +448,8 @@ class SpeculativeSetupAgent:
         """
         logger.info("[VERIFY] 开始 pytest 验证")
         # 创建 VerifierAgent，复用当前容器
-        verifier = VerifierAgent(self._env)
+        hint = action.verify_hint or ""
+        verifier = VerifierAgent(self._env, hint=hint)
         result = verifier.verify()  # 运行 pytest 验证
 
         logger.info(
@@ -481,6 +485,7 @@ class SpeculativeSetupAgent:
             self._state.completed = True
             self._state.final_message = f"pytest 验证通过，{result.collect_count} 个测试用例"
             self._state.last_error = None
+            self._last_verify_messages = result.messages  # 保存 Verifier 对话轨迹供 Phase 2
             # 任务成功后尝试将修复经验存入 XPU 向量数据库
             self._store_experience_if_applicable()
             return True
