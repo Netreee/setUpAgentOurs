@@ -406,6 +406,8 @@ class SpeculativeSetupAgent:
                 "stderr": "",
             },
         })
+        # SET_ENV 是主动配置动作，清除之前的错误状态，避免 LLM 继续纠结旧错误
+        self._state.last_error = None
 
     def _handle_rollback_env(self, action: AgentAction) -> None:
         """处理 ROLLBACK_ENV 动作：回滚容器到最近快照
@@ -486,8 +488,7 @@ class SpeculativeSetupAgent:
             self._state.final_message = f"pytest 验证通过，{result.collect_count} 个测试用例"
             self._state.last_error = None
             self._last_verify_messages = result.messages  # 保存 Verifier 对话轨迹供 Phase 2
-            # 任务成功后尝试将修复经验存入 XPU 向量数据库
-            self._store_experience_if_applicable()
+            # XPU 提取由 main.py 在 Phase 2 完成后统一触发，此处不再调用
             return True
         else:
             # 验证失败：将完整 pytest 输出反馈给 LLM，让它继续修复
@@ -516,8 +517,7 @@ class SpeculativeSetupAgent:
             },
         })
 
-        # 任务成功后尝试存储经验到向量数据库（Online Learning）
-        self._store_experience_if_applicable()
+        # XPU 提取由 main.py 在 Phase 2 完成后统一触发，此处不再调用
 
     # =========================================================================
     # 情境构建（供 Retriever Agent 使用）

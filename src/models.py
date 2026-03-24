@@ -130,10 +130,11 @@ class AgentAction:
         elif self.action_type == ActionType.SET_ENV:
             result["content"]["env_key"] = self.env_key
             result["content"]["env_value"] = self.env_value
+        elif self.action_type == ActionType.VERIFY:
+            if self.verify_hint:
+                result["content"]["hint"] = self.verify_hint
         elif self.action_type == ActionType.FINISH:
             result["content"]["message"] = self.message
-        if self.verify_hint:
-            result["content"]["hint"] = self.verify_hint
         return result
 
     def __str__(self) -> str:

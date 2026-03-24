@@ -25,7 +25,7 @@ from .models import VerifyResult  # 验证结果数据类
 logger = get_logger("verifier_agent")  # 创建 verifier_agent 模块专用日志记录器
 
 # Verifier 最大执行步数，防止无限循环
-MAX_STEPS = 30
+MAX_STEPS = 50
 
 # ============================================================================
 # Verifier Agent 的系统提示词

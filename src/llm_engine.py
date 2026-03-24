@@ -298,8 +298,10 @@ You MUST respond in JSON format with this schema:
     "env_key": "VAR_NAME",
     "env_value": "value"
 
-    // 如果是 ROLLBACK_ENV / VERIFY / FINISH:
-    // （ROLLBACK_ENV、VERIFY 无需额外字段）
+    // 如果是 VERIFY:
+    // 可选: "hint": "告知 Verifier 如何运行测试，如 pytest 参数、测试目录等"
+
+    // 如果是 ROLLBACK_ENV: 无需额外字段
     // FINISH 需要: "message": "环境配置完成"
   }}
 }}
