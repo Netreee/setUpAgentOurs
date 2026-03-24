@@ -26,6 +26,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-steps", type=int, default=50, help="单仓库最大迭代步数")
     parser.add_argument("--output-dir", default="runs", help="日志输出目录")
     parser.add_argument("--disable-xpu", action="store_true", help="强制禁用 XPU")
+    parser.add_argument("--skip-existing", action="store_true", help="跳过 log/ 下已有结果的仓库")
+    parser.add_argument("--cleanup-interval", type=int, default=10, help="每跑完 N 个仓库清理一次 Docker")
     return parser.parse_args()
 
 
@@ -67,14 +69,24 @@ def run_one(
     env = os.environ.copy()
     if disable_xpu:
         env["XPU_DISABLED"] = "true"
+        env["XPU_ENABLED"] = "false"
+        env["XPU_VECTOR_ENABLED"] = "false"
     env["LOG_FILE"] = str(log_path)
     env["LOG_FILE_PREFIX"] = f"{safe_name}@{revision}"
 
     cmd = [sys.executable, "-m", "src.main", repo_url, str(max_steps)]
-    with log_path.open("w", encoding="utf-8") as fp:
-        result = subprocess.run(cmd, stdout=fp, stderr=fp, env=env)
+    try:
+        with log_path.open("w", encoding="utf-8") as fp:
+            result = subprocess.run(cmd, stdout=fp, stderr=fp, env=env, timeout=1800)
+        return repo, result.returncode == 0, str(log_path)
+    except subprocess.TimeoutExpired:
+        return repo, False, str(log_path)
 
-    return repo, result.returncode == 0, str(log_path)
+
+def docker_cleanup() -> None:
+    """清理停止的容器 + 悬空镜像，释放磁盘"""
+    subprocess.run(["docker", "container", "prune", "-f"], capture_output=True)
+    subprocess.run(["docker", "image", "prune", "-f"], capture_output=True)
 
 
 def format_progress(done: int, total: int, ok: int, fail: int) -> str:
@@ -92,9 +104,23 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     repos = load_repo_list(list_path, args.limit)
+
+    # 跳过已有结果的仓库
+    if args.skip_existing:
+        from glob import glob
+        existing = set()
+        for f in glob("log/*_result.json"):
+            name = os.path.basename(f).replace("_result.json", "")
+            existing.add(name)
+        before = len(repos)
+        repos = [r for r in repos if r.get("repository", "").split("/")[-1] not in existing]
+        skipped = before - len(repos)
+        if skipped:
+            print(f"跳过 {skipped} 个已有结果的仓库")
+
     total = len(repos)
     if total == 0:
-        print("未读取到任何仓库", file=sys.stderr)
+        print("未读取到任何仓库（可能全部已跑过）", file=sys.stderr)
         return 1
 
     lock = threading.Lock()
@@ -102,8 +128,9 @@ def main() -> int:
     ok = 0
     fail = 0
     results: List[Tuple[str, bool, str]] = []
+    cleanup_interval = args.cleanup_interval
 
-    print("开始执行批量任务...")
+    print(f"开始执行批量任务（{total} 个仓库，{args.workers} worker，每 {cleanup_interval} 个清理一次 Docker）")
 
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = [
@@ -122,6 +149,9 @@ def main() -> int:
                 results.append((repo, success, log_path))
                 progress = format_progress(done, total, ok, fail)
                 print("\r" + progress, end="", flush=True)
+                # 定期清理 Docker
+                if done % cleanup_interval == 0:
+                    docker_cleanup()
 
     print()
     print("批量任务完成")
