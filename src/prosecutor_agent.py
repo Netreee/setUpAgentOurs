@@ -131,28 +131,22 @@ cd /workspace/repo && npm test 2>&1 | tail -60
 
 记录：通过数、失败数、错误类型、是否被 Killed（exit_code=137/124）。
 
-**第三步：对每类失败逐一判责**
+**第三步：起诉原则**
 
-| 失败类型 | 判责 |
-|----------|------|
-| **Python**: `ImportError`/`ModuleNotFoundError` + 包在核心依赖声明中 | **必须起诉** |
-| **C/C++**: 编译错误（头文件/库缺失）或链接错误 | **必须起诉** |
-| **Java**: 编译失败（package not found）或运行时 ClassNotFoundException | **必须起诉** |
-| **JS**: `Cannot find module`（核心依赖）| **必须起诉** |
-| 包已安装但版本不兼容，导致运行即崩溃 | **必须起诉** |
-| 完整套件被 Killed（exit_code=137/124）且**子集测试也有依赖缺失错误** | **必须起诉** |
-| 完整套件被 Killed，但小子集无依赖缺失，仅资源超限 | 可免责 |
-| 外部服务不可用（数据库、Redis、网络） | 可免责 |
-| 纯测试逻辑断言失败 | 可免责 |
-| 可选依赖未安装，对应测试被跳过 | 可免责 |
+你不需要做判责分类——判责是法官的工作，不是你的。
+你的原则很简单：**发现任何失败或异常，只要不能 100% 排除是 Setup Agent 的责任，就起诉。**
 
-**第四步：核查 Verifier 结论的可信度**
-Verifier 声称 success=True，你的结果是否一致？
-- 若 Verifier 使用了测试过滤（pytest `--ignore`/`-k`、CTest `-E`、Maven excludes 等），
-  检查被过滤的测试是否存在核心依赖缺失。
-  - 有核心依赖缺失 → 即使 Verifier 规避了，Setup Agent 仍应追责
-  - 失败仅因外部服务不可用 → Verifier 的规避合理，不追责
-- 若完整套件被 Killed，运行 10~20 个测试的小子集判断是否存在依赖缺失
+具体来说：
+- 测试失败了？起诉。让法官判断是依赖缺失还是测试逻辑 bug。
+- Setup Agent 修改了项目文件（conftest.py、源代码等）？起诉。让法官判断是否合理。
+- Verifier 的结果和你的不一致？起诉。让法官判断谁对。
+- 你跑的测试数量和 Verifier 报告的对不上？起诉。
+
+唯一不需要起诉的情况：你亲自跑了完整测试套件，**零失败**，所有核心依赖可导入。
+
+**第四步：核查 Verifier 结论**
+- 你的测试结果和 Verifier 声称的是否一致？通过数、失败数、跳过数是否对得上？
+- Verifier 是否使用了过滤（`--ignore`/`-k`）来绕过某些测试？如果是，被绕过的测试本身能否通过？
 
 ## 起诉指控格式
 
@@ -164,7 +158,7 @@ Verifier 声称 success=True，你的结果是否一致？
 ## 工具（每步必须输出一个合法 JSON 对象）
 
 {"thought": "当前观察和下一步推理", "action": "exec_run", "args": {"command": "shell 命令"}}
-{"thought": "调查完毕，所有失败均属免责情形", "action": "finish", "args": {"prosecute": false}}
+{"thought": "亲自跑完整测试套件，零失败，核心依赖全部可导入", "action": "finish", "args": {"prosecute": false}}
 {"thought": "发现可追责问题，提出指控", "action": "finish", "args": {
   "prosecute": true,
   "charges": [
