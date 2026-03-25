@@ -80,6 +80,19 @@ def run_one(
             result = subprocess.run(cmd, stdout=fp, stderr=fp, env=env, timeout=1800)
         return repo, result.returncode == 0, str(log_path)
     except subprocess.TimeoutExpired:
+        # subprocess 被 kill 后 main.py 没机会写 result.json，这里兜底写一个
+        short_name = repo.rstrip("/").split("/")[-1]
+        fallback_path = Path("log") / f"{short_name}_result.json"
+        if not fallback_path.exists():
+            import json as _json
+            fallback_path.parent.mkdir(exist_ok=True)
+            _json.dump({
+                "repo_url": repo_url,
+                "setup": {"completed": False, "steps_taken": -1, "final_message": "subprocess 超时 (1800s)"},
+                "phase2": {"success": False, "reason": "subprocess 超时，进程被 kill"},
+            }, fallback_path.open("w"), ensure_ascii=False, indent=2)
+        # 杀掉该仓库可能残留的 Docker 容器
+        subprocess.run(["docker", "kill", f"$(docker ps -q)"], shell=True, capture_output=True)
         return repo, False, str(log_path)
 
 
