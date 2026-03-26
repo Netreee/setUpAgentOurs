@@ -285,55 +285,16 @@ class ProsecutorAgent:
                 logger.warning(obs)
                 messages.append({"role": "user", "content": obs})
 
-        if successful_steps == 0:
-            logger.error(f"Prosecutor 全部 {MAX_STEPS} 步 LLM 调用均失败（API failures={api_failures}），标记为异常")
-            self._llm.close()
-            # API 全部失败是基础设施问题，不应归咎于 Setup Agent
-            return ProsecutionResult(
-                prosecute=False,
-                charges=[{"claim": "[异常] 检察官调查失败：LLM API 全部不可用",
-                          "evidence": f"共 {MAX_STEPS} 步全部因 API 异常跳过，此结果不可信，需要重跑"}],
-                messages=list(messages),
-            )
-
-        # 步数耗尽：回顾调查过程中是否已发现可疑问题
-        # 从 LLM 的 thought 中提取已发现但未来得及正式起诉的线索
-        pending_issues = []
-        for msg in messages:
-            if msg.get("role") != "assistant":
-                continue
-            content = msg.get("content", "")
-            # 检查 thought 中是否提到了失败/缺失/错误等可疑信号
-            for keyword in ["ImportError", "ModuleNotFoundError", "未安装", "缺失",
-                            "不可导入", "failed", "FAILED", "ERROR", "起诉", "指控"]:
-                if keyword in content:
-                    # 提取 thought 作为未完成的指控
-                    try:
-                        parsed = self._parse_json(content)
-                        thought = parsed.get("thought", "")
-                        if thought and len(thought) > 20:
-                            pending_issues.append(thought[:200])
-                    except Exception:
-                        pass
-                    break
-
-        if pending_issues:
-            logger.warning(f"Prosecutor 步数耗尽但有 {len(pending_issues)} 条未完成的可疑发现，强制起诉")
-            self._llm.close()
-            charges = [{"claim": f"[步数耗尽] 检察官调查未完成，但已发现可疑问题：{issue}",
-                        "evidence": "检察官步数耗尽，此指控基于调查过程中的中间发现，需法官独立验证"}
-                       for issue in pending_issues[:3]]  # 最多取 3 条
-            return ProsecutionResult(
-                prosecute=True,
-                charges=charges,
-                messages=list(messages),
-            )
-
-        logger.warning(f"Prosecutor 达到最大步数（成功步数={successful_steps}），调查过程中未发现可疑问题，不起诉")
+        # 检察官未通过 finish 正常退出（步数耗尽或 API 全部失败）→ 默认起诉
+        # 理由：检察官未能完成调查并给出明确结论，应交由法官独立判断
+        reason = f"步数耗尽（成功步数={successful_steps}, API失败={api_failures}）" if successful_steps > 0 \
+            else f"LLM API 全部不可用（{api_failures} 次失败）"
+        logger.warning(f"Prosecutor 非正常退出: {reason}，默认起诉交由法官裁决")
         self._llm.close()
         return ProsecutionResult(
-            prosecute=False,
-            charges=[],
+            prosecute=True,
+            charges=[{"claim": f"[检察官未完成调查] {reason}",
+                      "evidence": "检察官未能正常完成调查流程，请法官独立进入容器验证环境状态"}],
             messages=list(messages),
         )
 
