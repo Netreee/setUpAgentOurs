@@ -75,25 +75,30 @@ def run_one(
     env["LOG_FILE_PREFIX"] = f"{safe_name}@{revision}"
 
     cmd = [sys.executable, "-m", "src.main", repo_url, str(max_steps)]
+    short_name = repo.rstrip("/").split("/")[-1]
+    fallback_path = Path("log") / f"{short_name}_result.json"
+
     try:
         with log_path.open("w", encoding="utf-8") as fp:
             result = subprocess.run(cmd, stdout=fp, stderr=fp, env=env, timeout=1800)
         return repo, result.returncode == 0, str(log_path)
     except subprocess.TimeoutExpired:
-        # subprocess 被 kill 后 main.py 没机会写 result.json，这里兜底写一个
-        short_name = repo.rstrip("/").split("/")[-1]
-        fallback_path = Path("log") / f"{short_name}_result.json"
-        if not fallback_path.exists():
-            import json as _json
-            fallback_path.parent.mkdir(exist_ok=True)
-            _json.dump({
-                "repo_url": repo_url,
-                "setup": {"completed": False, "steps_taken": -1, "final_message": "subprocess 超时 (1800s)"},
-                "phase2": {"success": False, "reason": "subprocess 超时，进程被 kill"},
-            }, fallback_path.open("w"), ensure_ascii=False, indent=2)
-        # 杀掉该仓库可能残留的 Docker 容器
-        subprocess.run(["docker", "kill", f"$(docker ps -q)"], shell=True, capture_output=True)
-        return repo, False, str(log_path)
+        reason = "subprocess 超时 (1800s)"
+    except Exception as e:
+        reason = f"进程异常: {str(e)[:100]}"
+
+    # 兜底：无论超时还是崩溃，确保写出 result.json
+    if not fallback_path.exists():
+        import json as _json
+        fallback_path.parent.mkdir(exist_ok=True)
+        _json.dump({
+            "repo_url": repo_url,
+            "setup": {"completed": False, "steps_taken": -1, "final_message": reason},
+            "phase2": {"success": False, "reason": reason},
+        }, fallback_path.open("w"), ensure_ascii=False, indent=2)
+    # 清理残留容器
+    subprocess.run(["docker", "container", "prune", "-f"], capture_output=True)
+    return repo, False, str(log_path)
 
 
 def docker_cleanup() -> None:
