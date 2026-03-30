@@ -1,0 +1,1851 @@
+{
+  "description": "SetupAgent withoutXPU 完整基准（312 个 repo，无 XPU，3600s timeout）。原始 29 个 no_result（API 欠费导致）已全部补跑：17 个通过 flip_pos_noxpu_3600s 实验验证（pass），12 个重新补跑（2026-03-30）。",
+  "summary": {
+    "total": 312,
+    "pass": 116,
+    "not_guilty": 107,
+    "guilty": 5,
+    "error": 41,
+    "timeout": 43,
+    "no_result": 0,
+    "success": 223,
+    "success_rate": 0.7147
+  },
+  "total": 312,
+  "success_rate": 0.7147,
+  "repos": [
+    {
+      "repo": "HA-Battery-Notes",
+      "repo_url": "https://github.com/andrew-codechimp/HA-Battery-Notes",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为pyproject.toml中black仅在注释中提及，未在[tool.uv.dev-dependencies]或其他依赖部分声明，不属于核心依赖，Setup Agent无义务安装。指控2驳回，isort同样未在依赖中声明，仅在[tool.ruff.lint.isort]配置中引用，非安装依赖。指控3未完全验证，但基于类似模式，pre-commit可能也未声明，因此驳回。"
+    },
+    {
+      "repo": "OpenLane",
+      "repo_url": "The-OpenROAD-Project/OpenLane",
+      "status": "error"
+    },
+    {
+      "repo": "TRTools",
+      "repo_url": "https://github.com/gymrek-lab/TRTools",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "acme",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "adaptix",
+      "repo_url": "https://github.com/reagento/adaptix",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：phonenumbers未在pyproject.toml的依赖或可选依赖中声明，属于示例特定的未声明依赖；Setup Agent仅负责安装声明的依赖，核心测试套件运行成功，环境配置合格；失败原因是测试逻辑依赖外部包，非Setup Agent失职）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "aiogram_dialog",
+      "repo_url": "https://github.com/tishka17/aiogram_dialog",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "ajenti",
+      "repo_url": "https://github.com/ajenti/ajenti",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：pytest超时是由于测试需要启动外部Ajenti服务器和gevent兼容性问题，Setup Agent已正确安装依赖和配置环境，环境基本可用，超时是测试执行问题而非配置不足）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "androidviewclient",
+      "repo_url": "https://github.com/dtmilano/androidviewclient",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "ansible-zuul-jobs",
+      "repo_url": "https://github.com/ansible/ansible-zuul-jobs",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为alembic已安装（pip show确认），但导入失败是由于alembic版本1.4.3与sqlalchemy版本不兼容导致的依赖冲突，这属于版本兼容性问题，而非Setup Agent未安装依赖。此外，alembic列在test-requirements.txt中，是测试依赖，非核心运行依赖（项目是Ansible项目，核心依赖在requirements.txt中）。检察"
+    },
+    {
+      "repo": "apiflask",
+      "repo_url": "https://github.com/apiflask/apiflask",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：亲自验证运行pytest -q确实有1个失败，但详细错误显示TypeError: Can't instantiate abstract class Number with abstract method num_type。这发生在测试代码中实例化抽象类时，是项目逻辑错误或代码bug，不是环境配置问题。核心依赖（如Flask、Marshmallow）已安装且导入成功，没"
+    },
+    {
+      "repo": "aqtinstall",
+      "repo_url": "https://github.com/miurahr/aqtinstall",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为亲自验证pytest命令运行正常，没有超时失败，超时属于测试执行时间问题，非Setup Agent配置错误；指控2驳回，因为亲自验证test_commercial.py所有测试通过，无失败，检察官的证据可能不准确或基于旧状态。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "armi",
+      "repo_url": "https://github.com/terrapower/armi",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认ARMI包已安装并可配置，测试失败是由于测试逻辑需要调用armi.configure()，属于项目固有限制，非Setup Agent失职），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "asdf",
+      "repo_url": "https://github.com/asdf-format/asdf",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent配置的环境导致测试失败和环境不一致。亲自验证：运行检察官的命令，确认7个测试因AsdfPackageVersionWarning失败，1991个通过。失败原因是测试数据用asdf==2.15.1创建，但安装了开发版本0.1.dev1+g64eb0eb85，这属于项目固有限制（版本不匹配），不是依赖缺失、编译失败或环境配置错误。所有核心依赖（如asdf, nu"
+    },
+    {
+      "repo": "asdf-standard",
+      "repo_url": "https://github.com/asdf-format/asdf-standard",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "autodoc_pydantic",
+      "repo_url": "https://github.com/mansenfranzen/autodoc_pydantic",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（importlib-metadata 是条件依赖，仅在 Python <=3.8 时安装，当前 Python 3.10 下不应安装，导入失败是预期的），指控2 驳回（测试失败是 AssertionError，属于测试逻辑 bug 或项目固有限制，不是环境配置问题，导入验证成功），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "autograd",
+      "repo_url": "https://github.com/hips/autograd",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "automlbenchmark",
+      "repo_url": "https://github.com/openml/automlbenchmark",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "basxconnect",
+      "repo_url": "https://github.com/basxsoftwareassociation/basxconnect",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "bigbang",
+      "repo_url": "https://github.com/datactive/bigbang",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保pandas版本兼容性导致测试失败。亲自验证：pandas已安装（版本3.0.1），测试失败确实由pandas API不兼容引起（TypeError: to_datetime() got an unexpected keyword argument 'infer_datetime_format'）。但检查pyproject.toml，dependenc"
+    },
+    {
+      "repo": "biothings.api",
+      "repo_url": "biothings/biothings.api",
+      "status": "error"
+    },
+    {
+      "repo": "bitcart",
+      "repo_url": "bitcart/bitcart",
+      "status": "error",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：Setup Agent 超时（11 步），未主动 FINISH"
+    },
+    {
+      "repo": "bitstring",
+      "repo_url": "https://github.com/scott-griffiths/bitstring",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "brainrender",
+      "repo_url": "brainglobe/brainrender",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "bread",
+      "repo_url": "https://github.com/basxsoftwareassociation/bread",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "briefcase",
+      "repo_url": "https://github.com/beeware/briefcase",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（pytest-cov 不在 pyproject.toml 的 test 依赖列表中，属于可选或非核心依赖，Setup Agent 无安装义务），指控2 驳回（pytest-httpx 不在 pyproject.toml 中，非核心依赖）。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "brightway2-io",
+      "repo_url": "https://github.com/brightway-lca/brightway2-io",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官声称Setup Agent安装了不兼容的核心依赖bw2analyzer和bw2calc。经验证，bw2analyzer不在项目pyproject.toml的核心依赖[dependencies]中，也不在[project.optional-dependencies]中，因此不是Setup Agent必须处理的核心依赖。虽然导入bw2analyzer确实失败（由于与bw2calc版本不兼"
+    },
+    {
+      "repo": "brozzler",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "btrack",
+      "repo_url": "https://github.com/quantumjot/btrack",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控未安装核心依赖 scikit-learn，但经我亲自验证，scikit-learn 不在 pyproject.toml 的 [project.dependencies] 中，也不在 optional-dependencies 或其他配置文件中，表明它不是项目的核心依赖。虽然导入失败，但这是由于依赖未安装，而 Setup Agent 的职责是安装核心依赖，非核心依赖的缺失不构成失职"
+    },
+    {
+      "repo": "cantools",
+      "repo_url": "https://github.com/cantools/cantools",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "cbmonitor",
+      "repo_url": "https://github.com/couchbase/cbmonitor",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认forms.py有冗余代码，但表单能正常导入和实例化，未发现功能破坏；项目无测试套件，无法验证其他失败，但检察官未提供实际失败证据）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "cclib",
+      "repo_url": "https://github.com/cclib/cclib",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为ase、chemfiles、pyquante2、h5py等依赖不在核心依赖中，ase和chemfiles在optional-dependencies的bridges部分，h5py和pyquante2未在pyproject.toml的依赖列表中，测试失败是由于项目可选依赖或测试特定需求，不属于Setup Agent失职。指控2驳回，因为Setup Agent创建cclib/"
+    },
+    {
+      "repo": "cellrank",
+      "repo_url": "https://github.com/theislab/cellrank",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官验证测试套件因AttributeError不可运行。我亲自验证：unittest.mock在虚拟环境中可用（python -c 'import unittest.mock'成功），但运行pytest确实出现AttributeError。失败原因是测试文件test_lineage.py使用了'@unittest.mock.patch'，而Python 3.13中unittest.moc"
+    },
+    {
+      "repo": "censys-python",
+      "repo_url": "https://github.com/censys/censys-python",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "ceph-ansible",
+      "repo_url": "https://github.com/ceph/ceph-ansible",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认错误存在，但原因是功能测试依赖 ansible 连接后端，需要外部环境如 vagrant 或 SSH，在容器内无法运行；Setup Agent 已正确安装 testinfra 和 ansible-core，并配置了 Python 路径；失败属于项目固有限制，非 Setup Agent 配置遗漏），综合裁决所有指控均被驳回。"
+    },
+    {
+      "repo": "cheroot",
+      "repo_url": "https://github.com/cherrypy/cheroot",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：检察官声称jaraco.collections是核心依赖，来源pyproject.toml [project.dependencies]，但验证发现pyproject.toml中[project.dependencies]部分未列出任何依赖，jaraco.collections不在其中；依赖可能在其他地方或可选，非Setup Agent必须安装的核心依赖；检察官对项目"
+    },
+    {
+      "repo": "citationhunt",
+      "repo_url": "https://github.com/eggpi/citationhunt",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认环境配置正确，所有测试通过且依赖安装完整，检察官指控基于步数耗尽而非Setup Agent失职，环境状态合格），综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "civet",
+      "repo_url": "idaholab/civet",
+      "status": "error"
+    },
+    {
+      "repo": "clarity",
+      "repo_url": "claritychallenge/clarity",
+      "status": "timeout"
+    },
+    {
+      "repo": "client",
+      "repo_url": "https://github.com/dagshub/client",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：我的验证确认starlette已安装，且测试运行没有出现ImportError；检察官的证据来自Setup Agent轨迹步骤11，但步骤12已安装starlette，后续测试通过，因此指控不成立）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "cltk",
+      "repo_url": "https://github.com/cltk/cltk",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：修改是修复语法错误以适应Python 3.10环境，验证确认导入正常且测试通过，未改变核心依赖或行为，属于Setup Agent合理配置），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "columnflow",
+      "repo_url": "columnflow/columnflow",
+      "status": "error"
+    },
+    {
+      "repo": "comma10k",
+      "repo_url": "commaai/comma10k",
+      "status": "error",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：git clone 失败（仓库过大，网络超时 exit_code=124/128）"
+    },
+    {
+      "repo": "conan-package-tools",
+      "repo_url": "https://github.com/conan-io/conan-package-tools",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "connexion",
+      "repo_url": "https://github.com/spec-first/connexion",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "cookiecutter",
+      "repo_url": "https://github.com/cookiecutter/cookiecutter",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证发现 pathspec 未在 pyproject.toml 的 [project.dependencies] 中列出，仅在代码中作为字符串出现，依赖可能不是核心依赖或检察官对依赖来源判断错误），指控2 驳回（原因：验证发现 click-option-group 未在 pyproject.toml 的 [project.dependencies] 中列出，检察官指控"
+    },
+    {
+      "repo": "custodian",
+      "repo_url": "https://github.com/materialsproject/custodian",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：pytest是可选dev依赖，非核心依赖，Setup Agent没有义务安装可选依赖；检察官的证据正确但依赖类型判断错误）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "cvxportfolio",
+      "repo_url": "https://github.com/cvxgrp/cvxportfolio",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回（tqdm不在核心依赖中），指控2驳回（pandas-datareader不在核心依赖中），指控3驳回（yfinance不在核心依赖中），指控4驳回（fredapi不在核心依赖中），指控5驳回（pandas-market-calendars不在核心依赖中），指控6驳回（requests在核心依赖中但仅用于Python版本<3.9，当前版本为3.10.20，因此可能不需要安装；且"
+    },
+    {
+      "repo": "dacy",
+      "repo_url": "https://github.com/centre-for-humanities-computing/dacy",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未配置环境使所有测试通过。我亲自验证了pytest运行结果，确实有2个测试失败。但失败原因是subprocess.CalledProcessError，涉及从Hugging Face下载模型wheel文件时版本无效。这属于外部服务依赖（网络下载、远程资源）问题，而不是Setup Agent的环境配置缺失。Setup Agent已成功安装项目核心依赖（如spa"
+    },
+    {
+      "repo": "dash-bio",
+      "repo_url": "https://github.com/plotly/dash-bio",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为项目是Python类型（有setup.py），Setup Agent的职责是配置Python环境，JavaScript依赖缺失不影响核心Python功能，且检察官对项目类型判断错误。指控2驳回，因为Node.js/npm未安装，但dev-requirements.txt无相关依赖，JavaScript测试套件可能非核心或可选，失败原因是外部依赖，非Setup Agent失"
+    },
+    {
+      "repo": "datamol",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "datasets",
+      "repo_url": "https://github.com/huggingface/datasets",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：检察官指控运行单元测试标记的测试出现失败和错误，我亲自验证确认有失败和错误，但这些失败和错误是由于测试框架配置问题（如fixture缺失）或包API不兼容（如lance包AttributeError），而不是Setup Agent未安装核心Python依赖。Setup Agent已经安装了pytest、lance等必要包，环境配置基本正确。根据判定标准，失败原因是测试"
+    },
+    {
+      "repo": "distutils",
+      "repo_url": "https://github.com/pypa/distutils",
+      "status": "pass",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：Prosecutor 未发现实质问题"
+    },
+    {
+      "repo": "dj-stripe",
+      "repo_url": "https://github.com/dj-stripe/dj-stripe",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（检察官声称django-environ是核心依赖，但pyproject.toml中未找到，且项目测试运行成功，表明非必需依赖）；指控2 驳回（类似，django-model-utils未在核心依赖中）；指控3 驳回（jsonfield未在核心依赖中）；指控4 未完全验证，但基于模式类似，可能也驳回。综合裁决：所有指控均不成立，Setup Agent未失职。"
+    },
+    {
+      "repo": "django-autocomplete-light",
+      "repo_url": "https://github.com/yourlabs/django-autocomplete-light",
+      "status": "error"
+    },
+    {
+      "repo": "django-bootstrap3",
+      "repo_url": "https://github.com/zostera/django-bootstrap3",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "django-bootstrap4",
+      "repo_url": "zostera/django-bootstrap4",
+      "status": "not_guilty",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：指控1和2均被驳回。验证确认 Setup Agent 确实修改了 tests/app/settings.py 和 tests/forms.py 文件，但：1) 修改的是测试文件（tests/目录），不是核心源代码（src/bootstrap4/）；2) GDAL 安装失败是 apt-get 网络超时导致，属于外部服务问题，非 Setup Agent 失职；3) Setup Agent 采取的变通方"
+    },
+    {
+      "repo": "django-bootstrap5",
+      "repo_url": "https://github.com/zostera/django-bootstrap5",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回（验证确认测试项数量为141个，匹配Verifier报告，检察官的wc -l计数包括非测试行，未发现收集异常），指控2驳回（验证显示单个网络依赖测试可运行，超时可能由测试套件整体时间或环境限制引起，非Setup Agent责任）。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "django-lfs",
+      "repo_url": "diefenbach/django-lfs",
+      "status": "error"
+    },
+    {
+      "repo": "django-machina",
+      "repo_url": "https://github.com/ellmetha/django-machina",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "django-mysql",
+      "repo_url": "https://github.com/adamchainz/django-mysql",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为检察官使用 'import mysqlclient' 失败，但 pip show 显示 mysqlclient 包已安装，正确导入名是 'MySQLdb'，亲自验证 'import MySQLdb' 成功，表明依赖实际可用，Setup Agent 已正确安装核心依赖。"
+    },
+    {
+      "repo": "django-registration",
+      "repo_url": "https://github.com/ubernostrum/django-registration",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：虚拟环境配置正确且包含Django，项目路径已添加；Verifier失败是因为使用了系统Python而非虚拟环境，属于外部服务用错环境；Setup Agent在步骤17安装Django到系统Python可能是在修复Verifier的临时问题，但核心依赖在虚拟环境中已处理）。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "documentation",
+      "repo_url": "https://github.com/islandora/documentation",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：mkdocs-material 包已安装，但导入名是 'material'，检察官用错了导入名，依赖实际可用）。指控2 驳回（原因：mkdocs-material-extensions 包已安装，但导入失败可能由于包结构问题，检察官验证一致，但项目是文档项目，依赖已通过 pip install -r requirements.txt 安装，Setup Agent 已履"
+    },
+    {
+      "repo": "donation-tracker",
+      "repo_url": "https://github.com/gamesdonequick/donation-tracker",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保项目正确安装导致TemplateDoesNotExist错误。我亲自验证：运行检察官命令，错误显示缺少'ui/generated/processing.html'模板，而非'tracker/admin/event.html'；查找文件确认不存在；检查项目配置发现依赖yarn构建前端资源。这属于外部构建步骤或可选依赖，非核心Python包缺失，且错误由项"
+    },
+    {
+      "repo": "dosage",
+      "repo_url": "https://github.com/webcomics/dosage",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：依赖 importlib-resources 在 pyproject.toml 中是条件依赖，仅当 Python 版本 < 3.9 时安装；当前 Python 版本为 3.10.20，因此该依赖不是核心依赖，Setup Agent 正确未安装。检察官的 ModuleNotFoundError 验证结果虽然一致，但失败原因是项目配置而非 Setup Agent 失职）。"
+    },
+    {
+      "repo": "duckdb_engine",
+      "repo_url": "https://github.com/mause/duckdb_engine",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认测试有13个失败，但关键依赖均可导入，失败源于项目内部SQLAlchemy兼容性问题，非Setup Agent失职），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "duino-coin",
+      "repo_url": "https://github.com/revoxhere/duino-coin",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "epschedule",
+      "repo_url": "https://github.com/eastsidepreparatoryschool/epschedule",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保环境可运行所有测试，导致2个测试因缺少Google Cloud认证失败。我亲自验证：1. 检查了requirements.txt中的google-auth和google-cloud-*包，pip show确认这些包已安装且可导入。2. 运行了检察官的命令'cd /workspace/repo && python -m pytest --tb=line "
+    },
+    {
+      "repo": "everyelection",
+      "repo_url": "https://github.com/democracyclub/everyelection",
+      "status": "guilty"
+    },
+    {
+      "repo": "evox",
+      "repo_url": "https://github.com/emi-group/evox",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "excalibur-tests",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "extension-helpers",
+      "repo_url": "https://github.com/astropy/extension-helpers",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "fabric",
+      "repo_url": "https://github.com/fabric/fabric",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "fastapi-pagination",
+      "repo_url": "https://github.com/uriyyo/fastapi-pagination",
+      "status": "error"
+    },
+    {
+      "repo": "featuretools",
+      "repo_url": "https://github.com/alteryx/featuretools",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "fhempy",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "fixator10-cogs",
+      "repo_url": "https://github.com/fixator10/fixator10-cogs",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控 Setup Agent 未安装核心依赖 F10-Cogs-Utils。我亲自验证：1. 运行检察官命令 'python3 -c \"import f10_cogs_utils\"' 确实报 ModuleNotFoundError。2. 但 pip show 显示包 'F10-Cogs-Utils' 已安装，位置在 /usr/local/lib/python3.10/site-pac"
+    },
+    {
+      "repo": "flask-security",
+      "repo_url": "https://github.com/flask-middleware/flask-security",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认测试失败，但失败原因是翻译文件未编译导致的KeyError，项目没有setup.py文件，且翻译文件已存在；这属于项目测试逻辑或数据缺失，而非Setup Agent配置环境失职，如依赖安装或路径设置错误），综合裁决所有指控均被驳回。"
+    },
+    {
+      "repo": "flavio",
+      "repo_url": "https://github.com/flav-io/flavio",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "folio_migration_tools",
+      "repo_url": "https://github.com/folio-fse/folio_migration_tools",
+      "status": "pass",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：Prosecutor 未发现实质问题"
+    },
+    {
+      "repo": "fontbakery",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "fundus",
+      "repo_url": "https://github.com/flairNLP/fundus",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "futaba",
+      "repo_url": "https://github.com/strinking/futaba",
+      "status": "error",
+      "reasoning": "逐条说明：指控1成立，因为验证确认typing_extensions依赖未安装，导致pytest无法运行，这是Setup Agent的失职。综合裁决为有罪。"
+    },
+    {
+      "repo": "gcr-catalogs",
+      "repo_url": "https://github.com/lsstdesc/gcr-catalogs",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：依赖pandas、h5py、pyarrow、tables、healpy在setup.py的extras_require['full']中，属于可选依赖，非核心依赖；Setup Agent已安装核心依赖如GCR>=0.9.2，可选依赖缺失导致的测试失败属于项目固有限制，非Setup Agent失职），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "genieparser",
+      "repo_url": "https://github.com/ciscotestautomation/genieparser",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "geoapps",
+      "repo_url": "https://github.com/mirageoscience/geoapps",
+      "status": "error"
+    },
+    {
+      "repo": "gflownet",
+      "repo_url": "https://github.com/alexhernandezgarcia/gflownet",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（torch_scatter 在 pyproject.toml 的 materials extra 中，属于可选依赖，非核心依赖，Setup Agent 未安装所有可选依赖不构成失职）；指控2 驳回（dave 同样在 materials extra 中，非核心依赖，且 URL 格式错误可能影响安装，但非核心依赖）。综合裁决：所有指控均不成立，Setup Agent 未失职。"
+    },
+    {
+      "repo": "gftools",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "giskard",
+      "repo_url": "https://github.com/giskard-ai/giskard",
+      "status": "not_guilty",
+      "reasoning": ""
+    },
+    {
+      "repo": "git-gud",
+      "repo_url": "https://github.com/benthayer/git-gud",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "gitsavvy",
+      "repo_url": "https://github.com/timbrel/gitsavvy",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未提供完整的核心依赖sublime模块。我亲自验证：1) pip show sublime 显示sublime不是PyPI包，导入名与pip包名不一致；2) 运行检察官的命令确认测试收集因sublime模块缺少属性而失败。但sublime模块是Sublime Text API的一部分，项目是Sublime Text插件，依赖外部Sublime Text环境，"
+    },
+    {
+      "repo": "gpflow",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "gpkit",
+      "repo_url": "https://github.com/convexengineering/gpkit",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "graphium",
+      "repo_url": "https://github.com/datamol-io/graphium",
+      "status": "error",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：subprocess 超时 (1800s)"
+    },
+    {
+      "repo": "great-tables",
+      "repo_url": "https://github.com/posit-dev/great-tables",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（亲自验证：selenium已安装，版本4.41.0满足要求，测试失败是因为WebDriverException: 'Unsupported platform/architecture combination: linux/aarch64'，这是缺少Chrome驱动或平台不支持的外部服务/硬件问题，非Setup Agent未安装依赖）。指控2 驳回（亲自验证：测试套件有106"
+    },
+    {
+      "repo": "gsutil",
+      "repo_url": "https://github.com/googlecloudplatform/gsutil",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：亲自验证发现gslib.__main__可以成功导入，表明模块已正确安装；AttributeError发生在pytest收集test_gsutil.py时，可能是由于测试代码中的mock操作或导入逻辑问题，而非Setup Agent未安装依赖或配置项目；根据判定标准，失败原因是测试逻辑错误，不属于Setup Agent失职）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "guardrails",
+      "repo_url": "https://github.com/guardrails-ai/guardrails",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为失败原因是测试逻辑错误（断言失败），而非Setup Agent配置的环境问题。没有证据显示依赖缺失、编译失败或外部服务依赖未处理。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "hacs_waste_collection_schedule",
+      "repo_url": "https://github.com/mampfes/hacs_waste_collection_schedule",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "hark",
+      "repo_url": "https://github.com/econ-ark/hark",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "hazm",
+      "repo_url": "https://github.com/roshan-research/hazm",
+      "status": "error",
+      "reasoning": "逐条说明：指控1成立（验证确认spacy-transformers是pyproject.toml中的核心依赖，且当前环境无法导入），指控2成立（验证确认huggingface-hub是pyproject.toml中的核心依赖，且当前环境无法导入）。综合裁决：有≥1条指控成立，Setup Agent失职。"
+    },
+    {
+      "repo": "helios-server",
+      "repo_url": "https://github.com/benadida/helios-server",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官声称未安装 django-picklefield，但亲自验证显示 pip show django-picklefield 确认包已安装在虚拟环境中。导入失败是因为检察官使用了错误的导入名 'django_picklefield'，而正确导入名是 'picklefield'。运行 import picklefield 成功，证明依赖实际可用。这属于检察官取证错误，而非 Setup Ag"
+    },
+    {
+      "repo": "heltour",
+      "repo_url": "https://github.com/lichess4545/heltour",
+      "status": "error"
+    },
+    {
+      "repo": "hknweb",
+      "repo_url": "https://github.com/compserv/hknweb",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "holo",
+      "repo_url": "https://github.com/r-anime/holo",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "homeassistant-octopusenergy",
+      "repo_url": "https://github.com/bottlecapdave/homeassistant-octopusenergy",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未配置环境变量导致103个集成测试失败。我亲自验证：运行检察官的命令确认103个失败；检查失败测试详情，发现错误为KeyError: 'API_KEY'，表明测试依赖外部API服务所需的环境变量。这属于项目固有的外部依赖限制，不是Setup Agent的职责（Setup Agent负责安装Python包和基本环境配置，不负责设置特定项目环境变量如API_KE"
+    },
+    {
+      "repo": "homebrew-file",
+      "repo_url": "https://github.com/rcmdnk/homebrew-file",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：检察官指控Setup Agent修改测试文件以添加skipif装饰器掩盖测试失败。我亲自验证确认文件被修改，且测试在没有装饰器时会失败。但失败原因是root用户权限问题（root用户可能绕过权限错误），这属于测试逻辑问题，而非Setup Agent配置环境失职。Setup Agent可能试图解决环境问题，但根据判定标准，失败原因是测试逻辑，非Setup Agent失职"
+    },
+    {
+      "repo": "hpi",
+      "repo_url": "https://github.com/karlicoss/hpi",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为 pyfzf_iter、cachew、mypy、colorlog、enlighten 在 pyproject.toml 的 project.optional-dependencies 中，是可选依赖，Setup Agent 没有义务安装；检察官验证失败但依赖非核心。指控2 驳回，因为测试收集错误包括 setuptools 缺失（非核心依赖）和可选模块错误（如 twint"
+    },
+    {
+      "repo": "huxley",
+      "repo_url": "https://github.com/bmun/huxley",
+      "status": "error"
+    },
+    {
+      "repo": "hydra",
+      "repo_url": "https://github.com/facebookresearch/hydra",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "hydropandas",
+      "repo_url": "artesiawater/hydropandas",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "ibmi-bob",
+      "repo_url": "https://github.com/ibm/ibmi-bob",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为 ibm_db_dbi 未在核心依赖中声明，且依赖 IBM i 外部服务，Setup Agent 无责任安装；指控2 驳回，因为测试失败原因包括路径断言（项目固有限制）和缺少外部依赖 ibm_db_dbi，非 Setup Agent 配置问题。综合所有指控，均不成立。"
+    },
+    {
+      "repo": "ilamb",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "importlib_metadata",
+      "repo_url": "https://github.com/python/importlib_metadata",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "improv",
+      "repo_url": "https://github.com/project-improv/improv",
+      "status": "timeout",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：Setup Agent 超时（60 步），未主动 FINISH"
+    },
+    {
+      "repo": "inflect",
+      "repo_url": "https://github.com/jaraco/inflect",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "intake",
+      "repo_url": "https://github.com/intake/intake",
+      "status": "error"
+    },
+    {
+      "repo": "irc",
+      "repo_url": "https://github.com/jaraco/irc",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "iree-llvm-sandbox",
+      "repo_url": "iree-org/iree-llvm-sandbox",
+      "status": "error"
+    },
+    {
+      "repo": "iris-grib",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "jmetalpy",
+      "repo_url": "https://github.com/jmetal/jmetalpy",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "kedro",
+      "repo_url": "https://github.com/kedro-org/kedro",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为亲自验证显示测试失败是由于断言错误（期望日志包含 'Kedro project fake_package'，但实际为 'Kedro project outside'），而非依赖缺失或环境配置问题。所有相关依赖（如 pandas、pydantic、kedro-datasets、IPython）已通过 pip show 确认安装，test extras 已满足。失败原因属于"
+    },
+    {
+      "repo": "kernel_tuner",
+      "repo_url": "https://github.com/kerneltuner/kernel_tuner",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "keyring",
+      "repo_url": "https://github.com/jaraco/keyring",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "kh2randomizer",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "klingon-assistant-data",
+      "repo_url": "https://github.com/de7vid/klingon-assistant-data",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "langgraph",
+      "repo_url": "https://github.com/langchain-ai/langgraph",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "lark",
+      "repo_url": "https://github.com/lark-parser/lark",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "lhotse",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "libensemble",
+      "repo_url": "libensemble/libensemble",
+      "status": "error"
+    },
+    {
+      "repo": "librephotos",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "lifelines",
+      "repo_url": "https://github.com/camdavidsonpilon/lifelines",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "litex-boards",
+      "repo_url": "https://github.com/litex-hub/litex-boards",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：测试失败是由于缺少外部FPGA工具链，如Vivado或Quartus，这些是外部依赖，不是Python包，Setup Agent已正确安装所有Python依赖包，无ImportError，失败属于项目固有限制，非Setup Agent失职），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "litgpt",
+      "repo_url": "https://github.com/Lightning-AI/litgpt",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "llm-random",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "llvmlite",
+      "repo_url": "https://github.com/numba/llvmlite",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "luigi",
+      "repo_url": "https://github.com/spotify/luigi",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官声称 test/contrib/s3_test.py 有24个测试失败，可能由于依赖安装不完整或版本不匹配。亲自验证：运行检察官的命令，确认24个测试失败，但失败原因是 AssertionError 和 AttributeError，涉及测试逻辑或模拟问题（如 moto 版本不兼容），而非 ModuleNotFoundError 或导入错误。检查 pyproject.toml，bot"
+    },
+    {
+      "repo": "mamonsu",
+      "repo_url": "https://github.com/postgrespro/mamonsu",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未配置测试环境，导致测试套件无法运行，因为Docker未安装。我亲自验证了命令'make -f Makefile.tests test'，确实输出'docker: not found'错误。然而，这个失败依赖于外部服务（Docker），而Setup Agent的职责是配置Python环境，不是安装系统级工具。测试套件（Makefile.tests）是集成测试"
+    },
+    {
+      "repo": "marimo",
+      "repo_url": "marimo-team/marimo",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "markdown",
+      "repo_url": "https://github.com/python-markdown/markdown",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "mashumaro",
+      "repo_url": "https://github.com/fatal1ty/mashumaro",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "meerkat",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "memegen",
+      "repo_url": "https://github.com/jacebrowning/memegen",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为亲自验证sanic-ext包已安装，正确导入名是'sanic_ext'，导入成功，检察官用'import sanic.ext'失败是由于导入名错误，不是依赖缺失。指控2驳回，因为亲自运行pytest得到254通过，与检察官证据一致，环境完整；Verifier报告的211通过可能是其自身运行条件差异（如测试逻辑bug），不是Setup Agent失职。所有指控均不成立。"
+    },
+    {
+      "repo": "menpo",
+      "repo_url": "https://github.com/menpo/menpo",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为test_black失败是由于代码格式化检查未通过，属于项目固有限制，且black依赖在tests_require中（可选测试依赖），Setup Agent已正确安装black包（版本26.3.1，满足>=20.0）。没有其他指控。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "meshio",
+      "repo_url": "https://github.com/nschloe/meshio",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未安装必要的依赖vtk和ply。亲自验证：vtk和ply包未安装，导入确实失败。但检查项目配置pyproject.toml，核心依赖只有numpy和rich，可选依赖'all'包括netCDF4和h5py，没有vtk或ply。因此，vtk和ply不是meshio项目的必需或可选依赖，Setup Agent没有义务安装它们。测试失败（SystemExit:1）"
+    },
+    {
+      "repo": "mflowgen",
+      "repo_url": "https://github.com/mflowgen/mflowgen",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "micropy-cli",
+      "repo_url": "https://github.com/bradenm/micropy-cli",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控测试套件运行失败，有6个失败。我亲自验证了检察官的命令，确认测试确实失败。但进一步检查发现，所有关键依赖导入成功，环境配置完整。失败原因是 AssertionError（如字符串比较不匹配），这属于测试逻辑或数据问题，而非 Setup Agent 配置环境不当（如缺少依赖）。根据判定标准，依赖仅在可选 extras 中或失败原因是测试逻辑时，指控应驳回。因此，指控1被驳回。"
+    },
+    {
+      "repo": "mimic",
+      "repo_url": "https://github.com/iss-mimic/mimic",
+      "status": "error",
+      "reasoning": "逐条说明：指控1成立，因为亲自验证确认Setup Agent创建的Discord/config.py包含空字符串的URL，导致脚本运行时抛出MissingSchema错误，这属于Setup Agent配置环境时的遗留问题，不属于外部服务或可选依赖问题。"
+    },
+    {
+      "repo": "mirascope",
+      "repo_url": "https://github.com/Mirascope/mirascope",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为亲自验证显示环境配置正确，测试收集无导入错误，通过数差异是由于测试收集数不同（2265项 vs 2247项），而非依赖安装不完整或环境配置问题。Setup Agent已成功安装所有依赖，测试运行通过，无失败。综合裁决，所有指控均被驳回。"
+    },
+    {
+      "repo": "miv-os",
+      "repo_url": "https://github.com/gazzolalab/miv-os",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "mne-lsl",
+      "repo_url": "mne-tools/mne-lsl",
+      "status": "timeout"
+    },
+    {
+      "repo": "moat-mqtt",
+      "repo_url": "m-o-a-t/moat-mqtt",
+      "status": "error"
+    },
+    {
+      "repo": "modalities",
+      "repo_url": "https://github.com/Modalities/modalities",
+      "status": "not_guilty",
+      "reasoning": "验证指控1：检察官指控Setup Agent未确保测试套件可运行，导致pytest收集时出现30个TypeError错误。我亲自运行了检察官的命令，确认错误存在。然而，错误是TypeError: 'The last parameter to Concatenate should be a ParamSpec variable'，发生在typing模块中。检查关键依赖（torch、numpy、pyd"
+    },
+    {
+      "repo": "model-analysis",
+      "repo_url": "tensorflow/model-analysis",
+      "status": "timeout",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：3600s subprocess timeout（TensorFlow 超大包安装，OOM exit_code=137）"
+    },
+    {
+      "repo": "molecularnodes",
+      "repo_url": "bradyajohnston/molecularnodes",
+      "status": "timeout",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：3600s subprocess timeout（bpy/Blender 依赖，容器内无法安装）"
+    },
+    {
+      "repo": "molecule",
+      "repo_url": "https://github.com/ansible/molecule",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "mollie-api-python",
+      "repo_url": "https://github.com/mollie/mollie-api-python",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "monty",
+      "repo_url": "https://github.com/materialsvirtuallab/monty",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "mopidy",
+      "repo_url": "https://github.com/mopidy/mopidy",
+      "status": "error"
+    },
+    {
+      "repo": "mov-cli",
+      "repo_url": "https://github.com/mov-cli/mov-cli",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "mpmath",
+      "repo_url": "https://github.com/mpmath/mpmath",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为亲自验证确认测试失败是由于版本字符串不匹配（实际'0.1.dev1+g7b40a40cc' vs 期望'1.'），这属于测试预期问题或项目开发状态，而非Setup Agent配置的环境缺陷（如缺少依赖或路径错误）。Setup Agent已成功安装项目（pip install -e .）和测试依赖（如pexpect），环境配置正确，测试运行无ImportError或其他Se"
+    },
+    {
+      "repo": "mqt-bench",
+      "repo_url": "https://github.com/cda-tum/mqt-bench",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "msgraph-sdk-python-core",
+      "repo_url": "https://github.com/microsoftgraph/msgraph-sdk-python-core",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "mteb",
+      "repo_url": "https://github.com/embeddings-benchmark/mteb",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控测试失败，但亲自验证发现测试确实失败（task8-expected8）。然而，失败原因是测试逻辑中assert predictions == expected不匹配，涉及mock任务和模型预测，这属于测试固有限制或逻辑错误，而非Setup Agent未安装依赖或配置环境。依赖（如mteb、numpy、torch）已在核心依赖中正确安装（验证导入成功）。因此，该指控驳回，不属于Se"
+    },
+    {
+      "repo": "mypyvy",
+      "repo_url": "https://github.com/wilcoxjay/mypyvy",
+      "status": "error",
+      "reasoning": "逐条说明：指控1成立。我亲自验证：运行'make test'失败，错误为AssertionError: cvc4 closed its stdout before we could get an answer，确认cvc4未安装。cvc4是项目Makefile中'test'目标的一部分，属于核心依赖。Setup Agent未安装cvc4，导致测试失败。"
+    },
+    {
+      "repo": "nablaweb",
+      "repo_url": "https://github.com/nabla-ntnu/nablaweb",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因是错误根源于项目测试代码的结构问题，test_result函数是视图函数而非测试函数，导致pytest错误收集；Setup Agent已正确配置环境，其他61个测试通过，证明环境可用）。综合裁决：所有指控均被驳回，Setup Agent无罪。"
+    },
+    {
+      "repo": "naomi",
+      "repo_url": "https://github.com/naomiproject/naomi",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "neo3-boa",
+      "repo_url": "cityofzion/neo3-boa",
+      "status": "error"
+    },
+    {
+      "repo": "neps",
+      "repo_url": "automl/neps",
+      "status": "error",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：Setup Agent 超时（21 步），未主动 FINISH"
+    },
+    {
+      "repo": "neptune-client",
+      "repo_url": "https://github.com/neptune-ai/neptune-client",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "netbox",
+      "repo_url": "netbox-community/netbox",
+      "status": "error"
+    },
+    {
+      "repo": "neuralforecast",
+      "repo_url": "https://github.com/nixtla/neuralforecast",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "neurogym",
+      "repo_url": "https://github.com/neurogym/neurogym",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "nevergrad",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "nextcord",
+      "repo_url": "https://github.com/nextcord/nextcord",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent修改了pyproject.toml文件，证据是git status显示修改。亲自验证：git diff显示修改添加了async-timeout到核心依赖和pytest等到dev依赖。这些修改源于Setup Agent在轨迹中步骤9和16的修复行为，旨在解决依赖缺失问题（如async_timeout模块缺失），属于Setup Agent的职责范围，并非失职或错"
+    },
+    {
+      "repo": "nlu",
+      "repo_url": "johnsnowlabs/nlu",
+      "status": "error"
+    },
+    {
+      "repo": "nonebot2",
+      "repo_url": "https://github.com/nonebot/nonebot2",
+      "status": "not_guilty",
+      "reasoning": "指控1驳回：检察官指控Setup Agent未确保测试套件通过，但亲自验证发现测试失败原因为测试逻辑或环境状态问题（如'Plugin already exists'），非Setup Agent配置错误或依赖缺失。测试依赖在可选组[dependency-groups] test中，非核心依赖，且测试能运行表明环境基本就绪。综合裁决，所有指控均不成立。"
+    },
+    {
+      "repo": "oadoi",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "odxtools",
+      "repo_url": "https://github.com/mercedes-benz/odxtools",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：pyproject.toml 中未找到 lxml 在核心依赖中，且项目测试通过，可能依赖在 optional-dependencies 或其他位置，检察官判断错误），指控2 驳回（类似原因，需验证但未直接运行，但基于项目测试通过，依赖可能非核心），指控3 驳回（类似原因）。综合裁决：所有指控均不成立，因为检察官的指控基于错误假设，且项目环境配置正确，测试通过。"
+    },
+    {
+      "repo": "op-test",
+      "repo_url": "https://github.com/open-power/op-test",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认pysocks包已安装，pip list显示PySocks 1.7.1，但import pysocks失败可能是因为包名大小写不匹配或导入路径问题，检察官的证据部分不准确；此外，依赖实际可导入，Setup Agent已履行职责）。综合裁决：所有指控均被驳回。"
+    },
+    {
+      "repo": "open-cas-linux",
+      "repo_url": "https://github.com/open-cas/open-cas-linux",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（失败原因是测试逻辑 bug，非 Setup Agent 失职），指控2 待验证，综合裁决"
+    },
+    {
+      "repo": "openaerostruct",
+      "repo_url": "https://github.com/mdolab/openaerostruct",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为失败测试依赖mphys，而mphys在setup.py中声明为可选依赖（在optional_dependencies中），非核心必需依赖；且失败原因是AttributeError: 'FakeComm' object has no attribute 'Get_rank'，这属于测试逻辑问题或依赖外部MPI环境，而非Setup Agent未安装包或配置错误。Setup "
+    },
+    {
+      "repo": "openapi-core",
+      "repo_url": "https://github.com/python-openapi/openapi-core",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "openpulse",
+      "repo_url": "https://github.com/open-pulse/openpulse",
+      "status": "error",
+      "reasoning": "逐条说明：指控1成立，亲自验证vtk在虚拟环境中导入失败，且vtk是pyproject.toml中的核心依赖。指控2成立，亲自验证测试收集阶段因缺少vtkmodules（vtk的一部分）而出现7个错误。Setup Agent未正确安装核心依赖vtk，导致环境配置不合格。"
+    },
+    {
+      "repo": "openqasm",
+      "repo_url": "openqasm/openqasm",
+      "status": "error"
+    },
+    {
+      "repo": "openreview-py",
+      "repo_url": "https://github.com/openreview/openreview-py",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：测试失败是由于依赖外部服务localhost:3000在容器中不可用，这是项目固有限制，Setup Agent已正确安装依赖并配置环境，非其责任），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "pajbot",
+      "repo_url": "https://github.com/pajbot/pajbot",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "paz",
+      "repo_url": "oarriaga/paz",
+      "status": "timeout",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：Setup Agent 超时（60 步），未主动 FINISH"
+    },
+    {
+      "repo": "pgeu-system",
+      "repo_url": "https://github.com/pgeu/pgeu-system",
+      "status": "not_guilty",
+      "reasoning": ""
+    },
+    {
+      "repo": "phobos",
+      "repo_url": "dfki-ric/phobos",
+      "status": "error"
+    },
+    {
+      "repo": "photutils",
+      "repo_url": "https://github.com/astropy/photutils",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因是测试失败是由于测试代码中的断言错误，期望与实际错误消息不匹配，这属于项目固有限制或测试逻辑bug，并非Setup Agent配置环境导致。验证结果与检察官一致，但原因分析表明不是Setup Agent的责任）。综合裁决：所有指控均被驳回，因此裁决为not_guilty。"
+    },
+    {
+      "repo": "piccolo",
+      "repo_url": "https://github.com/piccolo-orm/piccolo",
+      "status": "guilty"
+    },
+    {
+      "repo": "pika",
+      "repo_url": "https://github.com/pika/pika",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（失败原因是外部RabbitMQ服务缺失，非Setup Agent失职），指控2 驳回（gevent是可选依赖，非核心依赖），指控3 驳回（Verifier遵循Setup Agent提示过滤acceptance测试，合理且不掩盖环境问题），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "pip",
+      "repo_url": "https://github.com/pypa/pip",
+      "status": "error"
+    },
+    {
+      "repo": "pip-tools",
+      "repo_url": "https://github.com/jazzband/pip-tools",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回，因为亲自验证显示测试test_read_cache_permission_error失败是由于JSON解码错误导致CorruptCacheError，这是测试逻辑问题（缓存文件内容无效），而非环境配置问题。检查pyproject.toml的testing可选依赖，所有相关包（如pytest等）已安装，且没有ImportError或其他依赖缺失。Setup Agent已成功配"
+    },
+    {
+      "repo": "plasmapy",
+      "repo_url": "https://github.com/plasmapy/plasmapy",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：pint不在pyproject.toml的核心依赖列表中，Setup Agent未安装pint是合理的，因为pint可能仅在可选extras中或不是项目必需依赖），综合裁决所有指控均被驳回。"
+    },
+    {
+      "repo": "platformio-core",
+      "repo_url": "https://github.com/platformio/platformio-core",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "plotnine",
+      "repo_url": "https://github.com/has2k1/plotnine",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "plugin.video.netflix",
+      "repo_url": "https://github.com/castagnait/plugin.video.netflix",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官声称 'kodistubs' 导入失败，但亲自验证显示包已安装（pip list 确认），且项目代码中无相关导入。包描述为 'Stub modules'，可能仅用于类型提示，非运行时依赖。导入失败可能因包本身不提供可导入模块，而非 Setup Agent 未安装。因此指控驳回。"
+    },
+    {
+      "repo": "plugins",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "poetry",
+      "repo_url": "https://github.com/python-poetry/poetry",
+      "status": "error"
+    },
+    {
+      "repo": "portingdb",
+      "repo_url": "https://github.com/fedora-python/portingdb",
+      "status": "not_guilty",
+      "reasoning": "指控1 被驳回：sqlalchemy 不在 setup.py 的 requires 字段中，也不是可选依赖；检察官错误地认为它是核心依赖，实际项目不要求安装它。Setup Agent 已正确安装所有列出的依赖（如 PyYAML、click 等），并通过 smoke test 验证。"
+    },
+    {
+      "repo": "powderday",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "predicators",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "pretalx",
+      "repo_url": "https://github.com/pretalx/pretalx",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "probatus",
+      "repo_url": "https://github.com/ing-bank/probatus",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：测试失败是由于TypeError: 'XGBRegressor' object is not callable，这涉及shap与xgboost版本交互或测试逻辑问题，属于项目固有限制，而非Setup Agent配置错误；所有依赖已成功安装且可导入，无缺失包或配置问题，检察官的证据仅显示测试失败但未证明Setup Agent失职），综合裁决所有指控均被驳回。"
+    },
+    {
+      "repo": "prometheus-rpm",
+      "repo_url": "https://github.com/lest/prometheus-rpm",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "proselint",
+      "repo_url": "https://github.com/amperser/proselint",
+      "status": "guilty"
+    },
+    {
+      "repo": "protoletariat",
+      "repo_url": "cpcloud/protoletariat",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "pulser",
+      "repo_url": "https://github.com/pasqal-io/pulser",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：检察官指控Setup Agent配置的环境导致测试失败，但经我亲自验证，测试失败是由于浮点精度问题（assert np.complex128(1.5000000000000002+0j) == (0.5 * 3.0)），这是测试逻辑或项目固有问题，而非依赖缺失、编译失败或环境配置错误。我检查了关键依赖（numpy、scipy、qutip）的导入，均成功，表明Setup"
+    },
+    {
+      "repo": "py-evm",
+      "repo_url": "https://github.com/ethereum/py-evm",
+      "status": "guilty"
+    },
+    {
+      "repo": "pydmd",
+      "repo_url": "pydmd/pydmd",
+      "status": "timeout"
+    },
+    {
+      "repo": "pyfirebirdsql",
+      "repo_url": "https://github.com/nakagami/pyfirebirdsql",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未安装Firebird数据库服务器导致集成测试失败。我亲自验证：运行检察官的命令确认31个测试失败，错误为ConnectionRefusedError，表明需要连接Firebird服务器。检查测试文件base.py，确认测试依赖外部Firebird数据库服务（localhost:3050）。验证firebirdsql Python包可导入，说明Python依"
+    },
+    {
+      "repo": "pyftpdlib",
+      "repo_url": "https://github.com/giampaolo/pyftpdlib",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "pygeo",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "pyhanko",
+      "repo_url": "matthiasvalvekens/pyhanko",
+      "status": "error"
+    },
+    {
+      "repo": "pylabrobot",
+      "repo_url": "https://github.com/pylabrobot/pylabrobot",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pymanopt",
+      "repo_url": "https://github.com/pymanopt/pymanopt",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：jax是可选依赖，非核心依赖，Setup Agent没有义务安装可选依赖；测试收集失败是由于项目固有限制，不是Setup Agent的配置问题），综合裁决所有指控均被驳回。"
+    },
+    {
+      "repo": "pymarkdown",
+      "repo_url": "https://github.com/jackdewinter/pymarkdown",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pyperf",
+      "repo_url": "https://github.com/psf/pyperf",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pypose",
+      "repo_url": "https://github.com/pypose/pypose",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pyrollbar",
+      "repo_url": "https://github.com/rollbar/pyrollbar",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pysiaf",
+      "repo_url": "https://github.com/spacetelescope/pysiaf",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：亲自验证确认测试有2个失败，但失败原因是OSError: [Errno 25] Inappropriate ioctl for device，发生在os.getlogin()调用中，这是Docker容器环境缺少tty导致的平台特定问题，属于项目固有限制或环境限制，非Setup Agent配置错误。Setup Agent已正确安装依赖并确保项目可导入和大部分测试通过，失"
+    },
+    {
+      "repo": "pysmt",
+      "repo_url": "https://github.com/pysmt/pysmt",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pysnmp",
+      "repo_url": "https://github.com/pysnmp/pysnmp",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pytest-xdist",
+      "repo_url": "https://github.com/pytest-dev/pytest-xdist",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "python-control",
+      "repo_url": "https://github.com/python-control/python-control",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "python-holidays",
+      "repo_url": "https://github.com/vacanza/python-holidays",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "python-libjuju",
+      "repo_url": "https://github.com/juju/python-libjuju",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "python-progressbar",
+      "repo_url": "https://github.com/wolph/python-progressbar",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（覆盖率错误由项目配置导致，非Setup Agent责任），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "python-rucaptcha",
+      "repo_url": "https://github.com/andreidrang/python-rucaptcha",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（亲自验证：exit_code=124 是由于运行所有测试时可能超时或资源限制，而非缺少配置或依赖；环境变量已设置，简单测试通过，属于外部服务或测试逻辑问题，非 Setup Agent 失职）。指控2 驳回（亲自验证：Verifier 报告 success=True 合理，因为测试收集成功，失败是由于外部 API 依赖导致测试逻辑失败，非环境配置问题；Setup Agent "
+    },
+    {
+      "repo": "python-sasctl",
+      "repo_url": "https://github.com/sassoftware/python-sasctl",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（swat是extras_require中的可选依赖，非核心依赖；亲自验证原始测试通过，未因swat缺失而失败，修改不影响测试结果，不构成Setup Agent失职）。指控2 驳回（netrc解析错误是测试逻辑或文件格式问题，属于项目固有限制，非环境配置错误；亲自验证测试被跳过，但Setup Agent无责任修复测试逻辑）。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "python-zulip-api",
+      "repo_url": "https://github.com/zulip/python-zulip-api",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "pytorch-metric-learning",
+      "repo_url": "kevinmusgrave/pytorch-metric-learning",
+      "status": "timeout"
+    },
+    {
+      "repo": "pyuploadcare",
+      "repo_url": "https://github.com/uploadcare/pyuploadcare",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保测试套件通过，导致79个失败和21个错误。我亲自验证了pytest运行结果，确认有79个失败和21个错误。然而，分析错误输出显示，失败和错误是由于测试依赖外部Uploadcare API服务，缺少必要的配置（如uploadcare.ini文件或环境变量UPLOADCARE_PUBLIC_KEY、UPLOADCARE_SECRET_KEY）。根据判定标准"
+    },
+    {
+      "repo": "pyvespa",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "pyvisa",
+      "repo_url": "https://github.com/pyvisa/pyvisa",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（依赖 importlib-metadata 在 pyproject.toml 中未找到作为核心依赖，且项目测试运行正常，无导入错误，可能不是必需依赖），指控2 驳回（依赖 importlib-resources 同样未找到作为核心依赖，测试运行正常，非 Setup Agent 失职），综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "pywal16",
+      "repo_url": "https://github.com/eylles/pywal16",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "qibo",
+      "repo_url": "https://github.com/qiboteam/qibo",
+      "status": "error",
+      "reasoning": "指控1成立：验证确认tests/test_backends.py第130行被修改为'qulacs = False'，原始条件语句被移除。根据轨迹，qulacs依赖安装失败（步骤25-26），修改后测试通过（检察官证据），这属于Setup Agent失职，通过修改测试文件来掩盖依赖问题，而非正确安装或处理可选依赖。"
+    },
+    {
+      "repo": "qibocal",
+      "repo_url": "https://github.com/qiboteam/qibocal",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "qibolab",
+      "repo_url": "https://github.com/qiboteam/qibolab",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "qiita",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "qmlcore",
+      "repo_url": "https://github.com/pureqml/qmlcore",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "qtconsole",
+      "repo_url": "https://github.com/jupyter/qtconsole",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "quacc",
+      "repo_url": "https://github.com/Quantum-Accelerators/quacc",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保测试套件完全通过，有1个测试失败。我亲自验证确认测试确实失败，但失败原因是AssertionError（期望字符串与实际输出不匹配），这属于测试逻辑问题或平台差异，而非Setup Agent的职责（如依赖安装、环境配置）。Setup Agent已成功安装核心依赖并配置虚拟环境，测试框架运行正常。因此，该指控被驳回。"
+    },
+    {
+      "repo": "rdmo",
+      "repo_url": "https://github.com/rdmorganiser/rdmo",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官声称步数耗尽，但未提供具体验证命令或失败证据。我亲自验证：运行 python -c 'import django, pytest, pytest_django' 成功，显示版本信息；运行 pytest 测试通过，无 ImportError 或其他环境问题。环境已正确配置，所有依赖可用，测试框架工作正常。因此，指控驳回。综合裁决：无指控成立。"
+    },
+    {
+      "repo": "readux",
+      "repo_url": "https://github.com/ecds/readux",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保测试环境可用，导致54个失败和162个错误。我亲自验证：运行了检察官的命令，确认有54个失败和162个错误。但分析错误详情显示，具体错误是ConnectionRefusedError（如urllib3和elasticsearch连接失败），表明测试依赖外部服务（如网络或Elasticsearch服务器）在容器内不可用。没有发现ImportError或M"
+    },
+    {
+      "repo": "rebench",
+      "repo_url": "https://github.com/smarr/rebench",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "recipe-scrapers",
+      "repo_url": "https://github.com/hhursev/recipe-scrapers",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "reddit2telegram",
+      "repo_url": "https://github.com/fillll/reddit2telegram",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为测试失败是由于测试代码中的逻辑错误（ValueError由于空字典键）和依赖外部MongoDB服务不可用，而非Setup Agent未确保依赖可用；亲自验证pymongo已安装且可导入。指控2驳回，因为Setup Agent修改测试文件以跳过MongoDB连接错误，但未解决代码逻辑错误，这属于项目测试代码问题，非环境配置失职。综合所有指控均不成立。"
+    },
+    {
+      "repo": "regions",
+      "repo_url": "https://github.com/astropy/regions",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：虽然Setup Agent确实修改了pyproject.toml文件，但根据审判流程的判定标准，检察官的指控是'Setup Agent修改了项目文件pyproject.toml'，这本身是事实，但需要判断这是否构成Setup Agent失职。在Setup Agent轨迹中，修改是为了解决Python版本不匹配问题（从>=3.11改为>=3.10），以允许在Python"
+    },
+    {
+      "repo": "reproject",
+      "repo_url": "astropy/reproject",
+      "status": "error"
+    },
+    {
+      "repo": "reticulum",
+      "repo_url": "https://github.com/markqvist/reticulum",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：项目使用unittest测试框架，检察官错误地要求pytest收集测试；Setup Agent已配置环境使unittest测试运行成功，依赖已安装，无缺失）。综合裁决：所有指控均不成立。"
+    },
+    {
+      "repo": "river",
+      "repo_url": "https://github.com/online-ml/river",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控Setup Agent未确保核心依赖版本兼容性导致测试失败。亲自验证：检查pyproject.toml，核心依赖为scipy>=1.16,<2、pandas>=2.2,<3、numpy>=2.3.4,<3；运行pytest命令确认有11个失败，但失败原因是AssertionError（如assert np.float64(1.0) < 1e-10），这是测试逻辑或数值精度问题，而"
+    },
+    {
+      "repo": "rl4co",
+      "repo_url": "https://github.com/ai4co/rl4co",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "robotframework",
+      "repo_url": "https://github.com/robotframework/robotframework",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "roiextractors",
+      "repo_url": "https://github.com/catalystneuro/roiextractors",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为scanimage-tiff-reader在pyproject.toml的optional-dependencies的full列表中，不是核心依赖。Setup Agent只负责安装核心依赖和测试依赖（如通过pip install '.[test]'），optional依赖如'full'可能不需要安装。检察官验证了导入失败和测试ModuleNotFoundError，但这属"
+    },
+    {
+      "repo": "rstcheck",
+      "repo_url": "https://github.com/rstcheck/rstcheck",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "sahasrahbot",
+      "repo_url": "https://github.com/tcprescott/sahasrahbot",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "sasview",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "scikit-rf",
+      "repo_url": "https://github.com/scikit-rf/scikit-rf",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "scvelo",
+      "repo_url": "https://github.com/theislab/scvelo",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "sdg-translations",
+      "repo_url": "https://github.com/open-sdg/sdg-translations",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：脚本main()为空是项目设计，但Setup Agent已正确配置环境，脚本可成功运行，依赖包已安装，失败原因是测试逻辑不完整而非环境配置问题），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "sdk",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "sdk-python",
+      "repo_url": "injectivelabs/sdk-python",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "section-properties",
+      "repo_url": "https://github.com/robbievanleeuwen/section-properties",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "sentry-python",
+      "repo_url": "https://github.com/getsentry/sentry-python",
+      "status": "error"
+    },
+    {
+      "repo": "smart_open",
+      "repo_url": "https://github.com/piskvorky/smart_open",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1驳回，因为pytest-cov不在项目核心依赖或test可选依赖中，仅用于辅助CI脚本，属于可选工具，Setup Agent无义务安装；指控2驳回，因为SO_AZURE_CONTAINER环境变量用于integration tests依赖外部Azure服务，属于项目固有限制（依赖外部服务），Setup Agent不负责配置外部服务环境变量。综合所有指控均不成立。"
+    },
+    {
+      "repo": "spatialmath-python",
+      "repo_url": "https://github.com/bdaiinstitute/spatialmath-python",
+      "status": "not_guilty",
+      "reasoning": "验证指控1：检察官声称Setup Agent未确保核心依赖matplotlib的图形测试环境稳定，导致4个测试超时失败。亲自验证：1. pip show matplotlib确认matplotlib已安装，版本3.10.8，位置正确。2. 检查pyproject.toml，matplotlib在核心依赖dependencies中，不是可选依赖。3. 重跑检察官的取证命令，确认4个测试超时失败（te"
+    },
+    {
+      "repo": "spec-bioimage-io",
+      "repo_url": "https://github.com/bioimage-io/spec-bioimage-io",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控 Setup Agent 未安装核心开发依赖 devtools。亲自验证：1. pip show devtools 显示包未安装。2. python3 -c 'import devtools' 确认 ModuleNotFoundError。但检查 pyproject.toml 显示 devtools 在 [project.optional-dependencies.dev] 中，"
+    },
+    {
+      "repo": "spectrum-access-system",
+      "repo_url": "wireless-innovation-forum/spectrum-access-system",
+      "status": "error"
+    },
+    {
+      "repo": "spelling",
+      "repo_url": "https://github.com/sphinx-contrib/spelling",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：验证确认测试失败，但失败原因是AssertionError，属于测试逻辑或外部依赖问题，如Git仓库状态；核心依赖可导入，环境配置正确，非Setup Agent失职），综合裁决所有指控均被驳回。"
+    },
+    {
+      "repo": "sphinx-gallery",
+      "repo_url": "https://github.com/sphinx-gallery/sphinx-gallery",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "sphinx-scylladb-theme",
+      "repo_url": "https://github.com/scylladb/sphinx-scylladb-theme",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控未安装核心依赖 sphinx-notfound-page，证据是 'import sphinx_notfound_page' 报错。我亲自验证：pip show sphinx-notfound-page 显示包已安装，检查包目录发现模块名为 'notfound'，尝试 'import notfound' 成功。因此，依赖实际可用，检察官用错了导入名（应为 'notfound' 而"
+    },
+    {
+      "repo": "spice_ev",
+      "repo_url": "https://github.com/rl-institut/spice_ev",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "spotpy",
+      "repo_url": "https://github.com/thouska/spotpy",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "staged-recipes",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "starsim",
+      "repo_url": "https://github.com/starsimhub/starsim",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "stopstalk-deployment",
+      "repo_url": "https://github.com/stopstalk/stopstalk-deployment",
+      "status": "error"
+    },
+    {
+      "repo": "strawberry-django-auth",
+      "repo_url": "nrbnlulu/strawberry-django-auth",
+      "status": "error"
+    },
+    {
+      "repo": "sublimejsprettier",
+      "repo_url": "https://github.com/jonlabelle/sublimejsprettier",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "sublimelinter",
+      "repo_url": "https://github.com/sublimelinter/sublimelinter",
+      "status": "guilty"
+    },
+    {
+      "repo": "supervision",
+      "repo_url": "https://github.com/roboflow/supervision",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "tablib",
+      "repo_url": "https://github.com/jazzband/tablib",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "taipy-core",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "terminusdb-client-python",
+      "repo_url": "https://github.com/terminusdb/terminusdb-client-python",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：集成测试失败是由于缺少Docker，这是依赖外部服务，属于项目固有限制，Setup Agent已正确安装Python依赖并配置环境，非其失职），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "testfixtures",
+      "repo_url": "https://github.com/simplistix/testfixtures",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "textext",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "tkp",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "tmuxp",
+      "repo_url": "https://github.com/tmux-python/tmuxp",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（检察官指控 kaptan 为核心依赖，但 pyproject.toml 中未列出，亲自验证 pip show 和 import 失败，但这不是 Setup Agent 失职，因为项目不依赖它）；指控2 驳回（检察官指控 click 为核心依赖，但 pyproject.toml 中未列出，亲自验证 pip show 和 import 失败，项目实际不依赖它）；指控3 驳回（检"
+    },
+    {
+      "repo": "torchgeo",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "tortoise-orm",
+      "repo_url": "https://github.com/tortoise/tortoise-orm",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "trafilatura",
+      "repo_url": "https://github.com/adbar/trafilatura",
+      "status": "not_guilty",
+      "reasoning": "指控1：检察官指控环境导致测试失败。亲自验证：运行python3 -m pytest确认6个测试失败，但分析失败原因：test_sysoutput失败是由于断言错误（assert True is False），是测试逻辑问题；test_probing失败是由于SSL证书验证错误，属于外部网络服务问题；其他失败（test_external、test_table_processing等）是由于Type"
+    },
+    {
+      "repo": "trax",
+      "repo_url": "google/trax",
+      "status": "timeout"
+    },
+    {
+      "repo": "twine",
+      "repo_url": "https://github.com/pypa/twine",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "uco",
+      "repo_url": "https://github.com/ucoproject/uco",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "uer-py",
+      "repo_url": "https://github.com/dbiir/uer-py",
+      "status": "error",
+      "reasoning": "逐条说明：指控1成立，因为验证确认test_dummy.py文件内容包含无效shell命令，导致pytest收集时出现SyntaxError，这与检察官证据一致，且文件由Setup Agent创建，属于其配置环境失职。综合裁决：有≥1条指控成立。"
+    },
+    {
+      "repo": "uk-polling-stations",
+      "repo_url": "https://github.com/democracyclub/uk-polling-stations",
+      "status": "error"
+    },
+    {
+      "repo": "umap",
+      "repo_url": "https://github.com/lmcinnes/umap",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "uncertainty-baselines",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "unixmd",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "unyt",
+      "repo_url": "https://github.com/yt-project/unyt",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "ursina",
+      "repo_url": "",
+      "status": "timeout",
+      "reasoning": ""
+    },
+    {
+      "repo": "verticapy",
+      "repo_url": "https://github.com/vertica/verticapy",
+      "status": "error",
+      "reasoning": "逐条说明：指控1 成立（验证确认 scikit-learn 在 requirements-testing.txt 中且导入失败，表明 Setup Agent 未安装此测试依赖）。综合裁决：有 ≥1 条指控成立，所以 guilty。"
+    },
+    {
+      "repo": "vkbottle",
+      "repo_url": "https://github.com/vkbottle/vkbottle",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "wagtailmenus",
+      "repo_url": "https://github.com/jazzband/wagtailmenus",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "website",
+      "repo_url": "https://github.com/hackerspace-ntnu/website",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "windpowerlib",
+      "repo_url": "https://github.com/wind-python/windpowerlib",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "wwrando",
+      "repo_url": "lagolunatic/wwrando",
+      "status": "timeout",
+      "reasoning": "noresult_rerun 补跑（2026-03-30）：3600s subprocess timeout（requirements.txt OOM exit_code=137）"
+    },
+    {
+      "repo": "xknx",
+      "repo_url": "https://github.com/xknx/xknx",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "xsdata",
+      "repo_url": "https://github.com/tefra/xsdata",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（原因：pyproject.toml中没有rich依赖，rich不是项目核心依赖，Setup Agent无需安装它），综合裁决所有指控均不成立。"
+    },
+    {
+      "repo": "yapf",
+      "repo_url": "https://github.com/google/yapf",
+      "status": "pass",
+      "reasoning": ""
+    },
+    {
+      "repo": "yubikey-manager",
+      "repo_url": "yubico/yubikey-manager",
+      "status": "pass",
+      "reasoning": "flip_pos_noxpu_3600s 验证：无 XPU + 3600s 超时全部通过（原 no_result 因 API 欠费）"
+    },
+    {
+      "repo": "zappa",
+      "repo_url": "https://github.com/zappa/zappa",
+      "status": "not_guilty",
+      "reasoning": "逐条说明：指控1 驳回（我的验证确认 setuptools 可导入且版本正常，没有出现检察官所述的 AssertionError，检察官的证据与验证结果矛盾）。综合裁决：所有指控均被驳回。"
+    }
+  ]
+}
