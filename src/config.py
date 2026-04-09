@@ -48,6 +48,8 @@ class XPUConfig:
     disabled: bool
     db_dns: str | None      # PostgreSQL 向量数据库连接串（env: dns 或 XPU_DB_DNS）
     vector_enabled: bool    # 启用 VectorXPUClient（env: XPU_VECTOR_ENABLED）
+    retriever_disabled: bool  # 消融：禁用 RetrieverAgent，退化为直接向量检索（env: XPU_RETRIEVER_DISABLED）
+    audit_disabled: bool      # 消融：禁用延迟审计机制（env: XPU_AUDIT_DISABLED）
 
 
 @dataclass(frozen=True)
@@ -114,6 +116,8 @@ def load_config() -> Config:
         disabled=_get_env_bool("XPU_DISABLED", False),
         db_dns=os.getenv("dns") or os.getenv("XPU_DB_DNS"),
         vector_enabled=_get_env_bool("XPU_VECTOR_ENABLED", False),
+        retriever_disabled=_get_env_bool("XPU_RETRIEVER_DISABLED", False),
+        audit_disabled=_get_env_bool("XPU_AUDIT_DISABLED", False),
     )
 
     # LLM 提供商选择

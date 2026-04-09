@@ -1,0 +1,1966 @@
+[
+  {
+    "repo": "trafilatura",
+    "full": "adbar/trafilatura",
+    "repo_url": "https://github.com/adbar/trafilatura",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 courlan（来源：setup.py install_requires）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import courlan'\n输出: ModuleNotFoundError: No module named 'courlan'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 htmldate（来源：setup.py install_requires）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import htmldate'\n输出: ModuleNotFoundError: No module named 'htmldate'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 justext（来源：setup.py install_requires）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import justext'\n输出: ModuleNotFoundError: No module named 'justext'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 lxml（来源：setup.py install_requires）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import lxml'\n输出: ModuleNotFoundError: No module named 'lxml'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：setup.py tests_require）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：指控1 成立（亲自验证：/opt/conda/bin/python3 -c 'import courlan' 报 ModuleNotFoundError）；指控2 成立（亲自验证：import htmldate 报 ModuleNotFoundError）；指控3 成立（亲自验证：import justext 报 ModuleNotFoundError）；指控4 成立（亲自验证：import lxml 报 ModuleNotFoundError）；指控5 成立（亲自验证：python3 -m pytest 报 No module named pytest）。以上依赖均在 setup.py 的 install_requires 或 tests_require 中声明，属于 Setup Agent 应安装的依赖，综合裁决 guilty。"
+  },
+  {
+    "repo": "ajenti",
+    "full": "ajenti/ajenti",
+    "repo_url": "https://github.com/ajenti/ajenti",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖（来源：ajenti-core/requirements.txt）",
+        "evidence": "命令: cat /data/project/ajenti-core/requirements.txt\n输出: 声明了 arrow, bs4, cookies, cryptography, distro, greenlet, gevent, gevent-websocket, gipc, itsdangerous, jadi, jinja2, lxml, passlib, pexpect, psutil, pyOpenSSL, pyotp, python-daemon, python-socketio, python-engineio, pyyaml, qrcode, reconfigure, requests, setproctitle, simplejson, six, termcolor 等核心依赖"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖导致模块无法导入",
+        "evidence": "命令: cd /data/project && for pkg in arrow bs4 cookies greenlet gevent gipc itsdangerous jadi jinja2 lxml passlib pexpect psutil pyOpenSSL pyotp python_daemon socketio engineio yaml qrcode reconfigure setproctitle simplejson six termcolor; do /opt/conda/bin/python3 -c \"import $pkg\" 2>&1 | grep -E \"ModuleNotFoundError|No module\" || echo \"$pkg: OK\"; done\n输出: 全部 25 个模块均报 ModuleNotFoundError，包括 arrow, bs4, cookies, greenlet, gevent, gipc, itsdangerous, jadi, jinja2, lxml, passlib, pexpect, psutil, pyOpenSSL, pyotp, python_daemon, socketio, engineio, yaml, qrcode, reconfigure, setproctitle, simplejson, six, termcolor"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖导致测试无法运行",
+        "evidence": "命令: cd /data/project/tests-pytest && /opt/conda/bin/python3 ajenti-test-instance.py 2>&1\n输出: Traceback (most recent call last):\n  File \"/data/project/tests-pytest/ajenti-test-instance.py\", line 7, in <module>\n    import aj.config\n  File \"/data/project/tests-pytest/../ajenti-core/aj/config.py\", line 4, in <module>\n    import yaml\nModuleNotFoundError: No module named 'yaml'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1：成立。ajenti-core/requirements.txt 确实声明了 arrow、jinja2、requests、psutil、gevent 等核心依赖，但这些包未被安装。\n- 指控2：成立。我亲自验证了 /opt/conda/bin/python3 -c 'import yaml' 和 'import jinja2' 均报 ModuleNotFoundError，确认核心依赖未安装导致模块无法导入。\n- 指控3：成立。我亲自运行了 tests-pytest/ajenti-test-instance.py，确认因缺少 yaml 模块而失败，测试无法运行。\n综合裁决：Setup Agent 未能安装项目核心依赖，导致环境不可用。"
+  },
+  {
+    "repo": "proselint",
+    "full": "amperser/proselint",
+    "repo_url": "https://github.com/amperser/proselint",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "molecule",
+    "full": "ansible/molecule",
+    "repo_url": "https://github.com/ansible/molecule",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 ansible-compat（来源：.config/requirements.in 第1行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import ansible_compat\"\n输出: ModuleNotFoundError: No module named 'ansible_compat'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 ansible-core（来源：.config/requirements.in 第2行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import ansible\"\n输出: ModuleNotFoundError: No module named 'ansible'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 click-help-colors（来源：.config/requirements.in 第4行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import click_help_colors\"\n输出: ModuleNotFoundError: No module named 'click_help_colors'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 enrich（来源：.config/requirements.in 第5行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import enrich\"\n输出: ModuleNotFoundError: No module named 'enrich'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 jsonschema（来源：.config/requirements.in 第6行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import jsonschema\"\n输出: ModuleNotFoundError: No module named 'jsonschema'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 Jinja2（来源：.config/requirements.in 第7行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import jinja2\"\n输出: ModuleNotFoundError: No module named 'jinja2'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 PyYAML（来源：.config/requirements.in 第10行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import yaml\"\n输出: ModuleNotFoundError: No module named 'yaml'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 wcmatch（来源：.config/requirements.in 第12行）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import wcmatch\"\n输出: ModuleNotFoundError: No module named 'wcmatch'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：.config/requirements-test.txt 第14行）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "亲自验证所有9条指控：\n- 指控1 (ansible-compat): 成立，python3 -c 'import ansible_compat' 报 ModuleNotFoundError\n- 指控2 (ansible-core): 成立，python3 -c 'import ansible' 报 ModuleNotFoundError\n- 指控3 (click-help-colors): 成立，python3 -c 'import click_help_colors' 报 ModuleNotFoundError\n- 指控4 (enrich): 成立，python3 -c 'import enrich' 报 ModuleNotFoundError\n- 指控5 (jsonschema): 成立，python3 -c 'import jsonschema' 报 ModuleNotFoundError\n- 指控6 (Jinja2): 成立，python3 -c 'import jinja2' 报 ModuleNotFoundError\n- 指控7 (PyYAML): 成立，python3 -c 'import yaml' 报 ModuleNotFoundError\n- 指控8 (wcmatch): 成立，python3 -c 'import wcmatch' 报 ModuleNotFoundError\n- 指控9 (pytest): 成立，python3 -m pytest 报 No module named pytest\n\n根据 pyproject.toml，.config/requirements.in 是核心依赖 (dependencies)，不是 optional-dependencies。Setup Agent 未能安装这些核心依赖，导致项目无法使用。"
+  },
+  {
+    "repo": "featuretools",
+    "full": "alteryx/featuretools",
+    "repo_url": "https://github.com/alteryx/featuretools",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "[检察官未完成调查] 步数耗尽（成功步数=30, API失败=0）",
+        "evidence": "检察官未能正常完成调查流程，请法官独立进入容器验证环境状态"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "亲自验证结果：1) featuretools 导入失败，报错 ModuleNotFoundError: No module named 'pandas'；2) 核心依赖 pandas 确实未安装；3) cloudpickle 也缺失。根据 pyproject.toml，pandas 和 cloudpickle 都是核心依赖（dependencies 而非 optional-dependencies），Setup Agent 未能正确安装这些核心依赖，导致项目无法使用。"
+  },
+  {
+    "repo": "asdf-standard",
+    "full": "asdf-format/asdf-standard",
+    "repo_url": "https://github.com/asdf-format/asdf-standard",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [project.optional-dependencies] test）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pyyaml（来源：pyproject.toml [project.optional-dependencies] test）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import yaml'\n输出: ModuleNotFoundError: No module named 'yaml'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 asdf（来源：pyproject.toml [project.optional-dependencies] test）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import asdf'\n输出: ModuleNotFoundError: No module named 'asdf'"
+      },
+      {
+        "claim": "Setup Agent 导致测试套件无法运行",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条分析：\n- 指控1（pytest未安装）：亲自验证确认未安装，但pytest位于[project.optional-dependencies] test中，非核心依赖，驳回。\n- 指控2（pyyaml未安装）：亲自验证确认未安装，但pyyaml位于[project.optional-dependencies] test中，非核心依赖，驳回。\n- 指控3（asdf未安装）：亲自验证确认未安装，但asdf位于[project.optional-dependencies] test中，非核心依赖，驳回。\n- 指控4（测试无法运行）：亲自验证确认无法运行，但原因是可选测试依赖未安装，非Setup Agent失职，驳回。\n\n综合：pyproject.toml中dependencies = []为空，所有被指控的依赖均在optional-dependencies中。Setup Agent只需确保核心依赖可用，无需安装可选依赖。所有指控均驳回。"
+  },
+  {
+    "repo": "briefcase",
+    "full": "beeware/briefcase",
+    "repo_url": "https://github.com/beeware/briefcase",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "apiflask",
+    "full": "apiflask/apiflask",
+    "repo_url": "https://github.com/apiflask/apiflask",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致 4 个测试失败（tests/ 目录），且缺少 examples 依赖导致测试套件无法完整运行",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest tests/ --tb=line -q\n输出: 4 failed, 284 passed\nFAILED tests/test_decorator_doc.py::test_doc_responses_custom_spec\nFAILED tests/test_decorator_input.py::test_input_with_dict_schema\nFAILED tests/test_decorator_output.py::test_output_with_dict_schema\nFAILED tests/test_openapi_headers.py::test_spec_with_dict_headers\n\n命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: ERROR examples/test_examples.py - ModuleNotFoundError: No module named 'flask_sqlalchemy'\nInterrupted: 1 error during collection"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条验证结果：\n1. 4 个测试失败（test_doc_responses_custom_spec, test_input_with_dict_schema, test_output_with_dict_schema, test_spec_with_dict_headers）：亲自验证确认这些失败都是断言逻辑问题（如 additionalProperties: False 字段差异），不是依赖缺失或环境配置问题。核心依赖（flask, flask-marshmallow, marshmallow, webargs, flask-httpauth, apispec）都已正确安装并可导入。\n2. flask_sqlalchemy 缺失：从 pyproject.toml 确认，flask_sqlalchemy 不在核心依赖（dependencies）中，也不在 optional-dependencies 中，它是 examples 目录的额外依赖。根据判定标准，依赖仅在可选 extras 中时不属于 Setup Agent 失职。\n\n综合裁决：所有指控均被驳回，Setup Agent 正确安装了核心依赖，测试失败是代码逻辑/断言问题，非环境配置问题。"
+  },
+  {
+    "repo": "bitcart",
+    "full": "bitcart/bitcart",
+    "repo_url": "https://github.com/bitcart/bitcart",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未配置 PostgreSQL 数据库服务，导致测试无法运行（conftest.py 需要数据库连接）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest tests/test_templates.py -v --no-cov -W ignore 2>&1\n输出: INTERNALERROR... ConnectionRefusedError: [Errno 111] Connection refused\n\n测试需要 PostgreSQL 数据库（api/settings.py 配置 DB_HOST=127.0.0.1, DB_PORT=5432），但环境中没有运行数据库服务。conftest.py 在 pytest_sessionstart 时尝试连接数据库导致 INTERNALERROR。"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：亲自验证确认测试因数据库连接失败报错，但根据判定标准，数据库是外部服务依赖而非 Python 包依赖。Setup Agent 的职责是配置 Python 环境和安装 Python 包，不是启动外部数据库服务。测试失败原因是外部服务不可用，属于'外部服务/网络/测试逻辑'范畴，非 Setup Agent 失职。"
+  },
+  {
+    "repo": "huxley",
+    "full": "bmun/huxley",
+    "repo_url": "https://github.com/bmun/huxley",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "cantools",
+    "full": "cantools/cantools",
+    "repo_url": "https://github.com/cantools/cantools",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：tox.ini [testenv] deps）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest-cov（来源：tox.ini [testenv] deps）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest_cov'\n输出: ModuleNotFoundError: No module named 'pytest_cov'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 coverage 和 parameterized（来源：tox.ini [testenv] deps）",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条说明：\n- 指控1 驳回：pytest 在 tox.ini [testenv] deps 中声明，属于测试依赖，不在 pyproject.toml 核心 dependencies 中。Setup Agent 职责是安装核心依赖使项目可用，cantools 已成功导入。\n- 指控2 驳回：pytest-cov 同样是 tox.ini 中的测试依赖，非核心依赖。\n- 指控3 驳回：coverage 和 parameterized 同样是 tox.ini 中的测试依赖，非核心依赖。\n综合裁决：所有指控均针对测试依赖，而 Setup Agent 已成功安装核心依赖（验证：cantools 可导入），测试依赖不属于 Setup Agent 必须安装的范围。"
+  },
+  {
+    "repo": "plugin.video.netflix",
+    "full": "castagnait/plugin.video.netflix",
+    "repo_url": "https://github.com/castagnait/plugin.video.netflix",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 flake8（来源：requirements.txt）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import flake8'\n输出: ModuleNotFoundError: No module named 'flake8'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：检察官声称 flake8 来自 requirements.txt，但实际 requirements.txt 中根本没有 flake8。flake8 是代码 linting 工具，属于开发依赖而非核心运行时依赖。Setup Agent 的职责是安装核心运行时依赖，不包括开发工具。检察官的指控基于错误的前提。"
+  },
+  {
+    "repo": "lifelines",
+    "full": "camdavidsonpilon/lifelines",
+    "repo_url": "https://github.com/camdavidsonpilon/lifelines",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境存在 GLIBCXX 版本不兼容问题，导致核心依赖 scipy 的子模块无法使用",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'from scipy.optimize import minimize'\n输出: ImportError: /opt/conda/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /opt/conda/lib/python3.13/site-packages/scipy/optimize/_highs/_highs_wrapper.cpython-313-aarch64-linux-gnu.so)\n\n命令: /opt/conda/bin/python3 -c 'import lifelines'\n输出: ImportError: /opt/conda/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest，无法运行测试套件验证",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest lifelines/ -rfs --timeout=120 -q\n输出: /opt/conda/bin/python3: No module named pytest\n\n依赖声明: reqs/dev-requirements.txt 中声明 pytest>=4.6"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证 /opt/conda/bin/python3 -c 'from scipy.optimize import minimize' 确实报 GLIBCXX_3.4.30 版本错误，scipy 在 base-requirements.txt 中是核心依赖，属于 Setup Agent 配置失职。指控2驳回：pytest 仅在 reqs/dev-requirements.txt 中声明，属于开发依赖而非核心依赖，根据判定标准应驳回。综合：有1条指控成立，裁决 guilty。"
+  },
+  {
+    "repo": "rl4co",
+    "full": "ai4co/rl4co",
+    "repo_url": "https://github.com/ai4co/rl4co",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "litgpt",
+    "full": "Lightning-AI/litgpt",
+    "repo_url": "https://github.com/Lightning-AI/litgpt",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "cookiecutter",
+    "full": "cookiecutter/cookiecutter",
+    "repo_url": "https://github.com/cookiecutter/cookiecutter",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "cheroot",
+    "full": "cherrypy/cheroot",
+    "repo_url": "https://github.com/cherrypy/cheroot",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：requirements/tests.in 明确声明 'pytest >= 7'）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pip list | grep -i pytest\n输出: (无结果，pytest 未安装)\n\n命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条说明：指控1 成立 - 我亲自验证：(1) requirements/tests.in 文件确实包含 'pytest >= 7' 声明；(2) 运行 '/opt/conda/bin/python3 -m pip list | grep -i pytest' 无输出，确认未安装；(3) 运行 '/opt/conda/bin/python3 -m pytest' 返回 'No module named pytest'。这是测试依赖文件中明确声明的核心测试依赖，非可选 extras，非外部服务问题，属于 Setup Agent 未正确安装依赖。综合裁决：guilty"
+  },
+  {
+    "repo": "columnflow",
+    "full": "columnflow/columnflow",
+    "repo_url": "https://github.com/columnflow/columnflow",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "django-lfs",
+    "full": "diefenbach/django-lfs",
+    "repo_url": "https://github.com/diefenbach/django-lfs",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 选择了与项目依赖不兼容的 Python 版本",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'from lfs.core.tests import *'\n输出: ModuleNotFoundError: No module named 'django.utils.six.moves'\n\n说明: setup.py 要求 Django >= 1.10, < 1.11，但 Setup Agent 使用 Python 3.13.2。Django 1.10.8 依赖 django.utils.six 模块，该模块在 Python 3.13 中已被移除，导致 Django 无法导入，测试无法运行。"
+      },
+      {
+        "claim": "Setup Agent 未配置可运行的测试环境",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import django; django.setup()'\n输出: ModuleNotFoundError: No module named 'django.utils.six.moves'\n\n说明: 项目缺少 manage.py，且 Django 1.10 与 Python 3.13 不兼容，导致无法运行任何 Django 测试。"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1 成立：我亲自验证，/opt/conda/bin/python3 -c 'from lfs.core.tests import *' 确实报 ModuleNotFoundError: No module named 'django.utils.six.moves'。setup.py 要求 Django >= 1.10, < 1.11，而 Django 1.10.8 依赖的 django.utils.six 模块在 Python 3.13 中已被移除，Setup Agent 使用 Python 3.13.2 与项目依赖不兼容。指控2 成立：我亲自验证，/opt/conda/bin/python3 -c 'import django; django.setup()' 同样报错，且项目无 manage.py 文件，测试环境确实无法运行。两条指控均成立，裁决 guilty。"
+  },
+  {
+    "repo": "datamol",
+    "full": "datamol-io/datamol",
+    "repo_url": "https://github.com/datamol-io/datamol",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "cclib",
+    "full": "cclib/cclib",
+    "repo_url": "https://github.com/cclib/cclib",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "dj-stripe",
+    "full": "dj-stripe/dj-stripe",
+    "repo_url": "https://github.com/dj-stripe/dj-stripe",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 django（来源：pyproject.toml [tool.poetry.dependencies] django = \">=4.2\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import django\"\n输出: ModuleNotFoundError: No module named 'django'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 stripe（来源：pyproject.toml [tool.poetry.dependencies] stripe）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import stripe\"\n输出: ModuleNotFoundError: No module named 'stripe'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "亲自验证结果：指控1成立 - /opt/conda/bin/python3 -c 'import django' 报 ModuleNotFoundError，django 是 pyproject.toml 中的核心依赖；指控2成立 - /opt/conda/bin/python3 -c 'import stripe' 报 ModuleNotFoundError，stripe 也是核心依赖。两条指控均确认成立，Setup Agent 未安装核心依赖。"
+  },
+  {
+    "repo": "evox",
+    "full": "emi-group/evox",
+    "repo_url": "https://github.com/emi-group/evox",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 jax（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import jax\"\n输出: ModuleNotFoundError: No module named 'jax'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 jaxlib（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import jaxlib\"\n输出: ModuleNotFoundError: No module named 'jaxlib'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 jax_dataclasses（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import jax_dataclasses\"\n输出: ModuleNotFoundError: No module named 'jax_dataclasses'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 optax（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import optax\"\n输出: ModuleNotFoundError: No module named 'optax'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pyarrow（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import pyarrow\"\n输出: ModuleNotFoundError: No module named 'pyarrow'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest 导致测试套件无法运行（来源：pyproject.toml [project.optional-dependencies] test）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条判定：\n- 指控1（jax）：成立。亲自验证：/opt/conda/bin/python3 -c 'import jax' 报 ModuleNotFoundError，且 jax 在 pyproject.toml [project.dependencies] 核心依赖中\n- 指控2（jaxlib）：成立。亲自验证：import jaxlib 报 ModuleNotFoundError，核心依赖未安装\n- 指控3（jax_dataclasses）：成立。亲自验证：import jax_dataclasses 报 ModuleNotFoundError，核心依赖未安装\n- 指控4（optax）：成立。亲自验证：import optax 报 ModuleNotFoundError，核心依赖未安装\n- 指控5（pyarrow）：成立。亲自验证：import pyarrow 报 ModuleNotFoundError，核心依赖未安装\n- 指控6（pytest）：驳回。pytest 在 [project.optional-dependencies] test 中，属于可选依赖而非核心依赖，根据判定标准'依赖仅在可选 extras 中，非核心依赖'应驳回\n\n综合裁决：5条核心依赖指控成立，Setup Agent 未安装核心依赖，裁决 guilty"
+  },
+  {
+    "repo": "py-evm",
+    "full": "ethereum/py-evm",
+    "repo_url": "https://github.com/ethereum/py-evm",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未初始化 git submodule，导致测试所需的 fixture 数据缺失",
+        "evidence": "命令: cat /data/project/.gitmodules\\n输出: [submodule \"fixtures\"]\\n\\tpath = fixtures\\n\\turl = https://github.com/ethereum/tests.git\\n\\n命令: ls -la /data/project/fixtures/\\n输出: total 12\\ndrwxr-xr-x 2 root root 4096 Apr  2 14:37 .\\ndrwxr-xr-x 1 root root 4096 Apr  2 14:39 ..\\n\\n命令: /opt/conda/bin/python3 -m pytest --tb=line -q --timeout=60 2>&1 | tail -30\\n输出: collected 4923 items / 4 errors / 1 skipped\\nERROR tests/json-fixtures/blockchain/test_blockchain.py - AssertionError: Suspiciously found zero fixtures\\nERROR tests/json-fixtures/test_difficulty.py - AssertionError: Suspiciously found zero fixtures\\nERROR tests/json-fixtures/test_transactions.py - AssertionError: Suspiciously found zero fixtures\\nERROR tests/json-fixtures/test_virtual_machine.py - AssertionError: Suspiciously found zero fixtures\\nInterrupted: 4 errors during collection"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1 成立：亲自验证确认：1) .gitmodules 文件存在，声明了 fixtures submodule 指向 ethereum/tests.git；2) fixtures/ 目录为空（仅含 . 和 ..），证明 submodule 未初始化；3) 运行测试时出现 4 个收集错误，均因 'Suspiciously found zero fixtures' 导致。初始化 git submodule 是环境配置的基本职责，不属于外部服务依赖或可选依赖范畴，Setup Agent 未执行此步骤导致测试无法运行。"
+  },
+  {
+    "repo": "androidviewclient",
+    "full": "dtmilano/androidviewclient",
+    "repo_url": "https://github.com/dtmilano/androidviewclient",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试失败：41 个测试中 10 个错误（TypeError: argument of type 'NoneType' is not iterable）",
+        "evidence": "命令: cd /data/project/tests && /opt/conda/bin/python3 -m unittest comm.dtmilano.android.viewclienttests.ViewTest -v 2>&1 | tail -50\n输出: Ran 41 tests in 1.015s\nFAILED (errors=10)\n错误详情: TypeError: argument of type 'NoneType' is not iterable (在 viewclient.py 第 415 行 __getattr__ 方法中)"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：我亲自验证确认测试确实失败，但错误原因是测试代码传入了 None 作为 View 的 _map 参数（View(None, device, -1)），而 viewclient.py 的 __getattr__ 方法没有处理 self.map 为 None 的边界情况。这是项目代码/测试本身的逻辑缺陷，不是 Setup Agent 配置问题。依赖 culebratester_client 已正确安装且可导入，环境配置无误。根据判定标准，'失败原因是测试逻辑，非 Setup Agent 失职' 属于驳回情形。"
+  },
+  {
+    "repo": "fabric",
+    "full": "fabric/fabric",
+    "repo_url": "https://github.com/fabric/fabric",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖导致测试无法运行（来源：dev-requirements.txt 声明了 pytest-relaxed>=2.0.1 和 invocations>=3.2.0）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'\n\n命令: /opt/conda/bin/python3 -m invoke test --help\n输出: ModuleNotFoundError: No module named 'invocations'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：检察官指控基于 dev-requirements.txt 中的 pytest-relaxed 和 invocations，但这些是开发/测试依赖，非核心依赖。setup.py 中 install_requires 仅声明了 invoke>=2.0, paramiko>=2.4, decorator>=5, deprecated>=1.2 为核心依赖，这些均已正确安装并可导入。pytest 在 extras_require['pytest'] 中为可选依赖。Setup Agent 的职责是安装核心依赖使项目可运行，而非所有开发依赖。"
+  },
+  {
+    "repo": "fhempy",
+    "full": "fhempy/fhempy",
+    "repo_url": "https://github.com/fhempy/fhempy",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 websockets（来源：pyproject.toml [tool.poetry.dependencies] websockets = \"==12.0\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import websockets'\n输出: ModuleNotFoundError: No module named 'websockets'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 importlib_metadata（来源：pyproject.toml [tool.poetry.dependencies] importlib_metadata）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import importlib_metadata'\n输出: ModuleNotFoundError: No module named 'importlib_metadata'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 python-dateutil（来源：pyproject.toml [tool.poetry.dependencies] python-dateutil = \"==2.9.0.post0\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import dateutil'\n输出: ModuleNotFoundError: No module named 'dateutil'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [tool.poetry.group.dev.dependencies] pytest = \"8.1.1\"），导致无法运行测试套件",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1（websockets）：亲自验证 /opt/conda/bin/python3 -c 'import websockets' 报 ModuleNotFoundError，该依赖在 [tool.poetry.dependencies] 中声明为核心依赖，指控成立。\n- 指控2（importlib_metadata）：亲自验证 /opt/conda/bin/python3 -c 'import importlib_metadata' 报 ModuleNotFoundError，该依赖在 [tool.poetry.dependencies] 中声明为核心依赖，指控成立。\n- 指控3（python-dateutil）：亲自验证 /opt/conda/bin/python3 -c 'import dateutil' 报 ModuleNotFoundError，该依赖在 [tool.poetry.group.all.dependencies] 中声明（属于 all 可选组，非核心依赖）。但 pyproject.toml 显示 python-dateutil 在 all.dependencies 中，需要重新确认是否为必装依赖。实际上 python-dateutil 不在 [tool.poetry.dependencies] 核心依赖中，而是在 [tool.poetry.group.all.dependencies] 可选组中，此指控应驳回。\n- 指控4（pytest）：亲自验证 /opt/conda/bin/python3 -m pytest 报 No module named pytest，该依赖在 [tool.poetry.group.dev.dependencies] 中声明，属于测试依赖。Setup Agent 应安装测试依赖以支持测试运行，指控成立。\n\n综合：指控1、2、4成立（核心依赖和测试依赖未安装），指控3需重新评估。但至少有 2 条核心依赖指控成立，裁决 guilty。"
+  },
+  {
+    "repo": "nevergrad",
+    "full": "facebookresearch/nevergrad",
+    "repo_url": "https://github.com/facebookresearch/nevergrad",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：requirements/dev.txt pytest>=4.3.0）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --collect-only 2>&1\n输出: /opt/conda/bin/python3: No module named pytest\n\n命令: /opt/conda/bin/python3 -m unittest discover -s nevergrad -p 'test_*.py' 2>&1 | head -50\n输出: ModuleNotFoundError: No module named 'pytest'\n\n测试文件直接依赖 pytest 模块，但环境未安装，导致测试无法执行。"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1：检察官指控 pytest 未安装导致测试无法执行。经验证：1) pytest 确实未安装；2) 但 pytest 位于 requirements/dev.txt，setup.py 明确将其放入 extras_require['dev'] 而非 install_requires（核心依赖）。requirements/main.txt 仅包含 numpy, cma, bayesian-optimization 等核心运行依赖。根据判定标准，依赖仅在可选 extras 中属于驳回情形。Setup Agent 只需确保核心依赖可用，开发/测试依赖属于可选安装范畴。"
+  },
+  {
+    "repo": "hydra",
+    "full": "facebookresearch/hydra",
+    "repo_url": "https://github.com/facebookresearch/hydra",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装与项目兼容的 pytest 版本，导致测试无法运行",
+        "evidence": "依赖声明: requirements/dev.txt 中声明 'pytest'（未指定版本）\n取证命令: /opt/conda/bin/python3 -m pytest tests/ --tb=line -q\n输出: ImportError: cannot import name 'RaisesContext' from '_pytest.python_api'\nERROR tests/instantiate/test_helpers.py\nERROR tests/test_examples/test_tutorials_basic.py\nERROR tests/test_overrides_parser.py\n3 errors in 0.33s"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：经亲自验证，pytest 已正确安装（版本 9.0.2），符合 requirements/dev.txt 中 'pytest'（无版本约束）的声明。测试失败原因是项目测试代码使用了 pytest 内部 API（_pytest.python_api.RaisesContext），该内部 API 在 pytest 新版本中已被移除。这是项目自身依赖声明不完整（未指定 pytest 版本范围）导致的兼容性问题，属于项目测试逻辑问题，非 Setup Agent 失职。Setup Agent 已按声明正确安装依赖。"
+  },
+  {
+    "repo": "pyftpdlib",
+    "full": "giampaolo/pyftpdlib",
+    "repo_url": "https://github.com/giampaolo/pyftpdlib",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心测试依赖 psutil（来源：Makefile PYDEPS）",
+        "evidence": "命令: python3 -c \"import psutil\"\n输出: ModuleNotFoundError: No module named 'psutil'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心测试依赖 pyopenssl（来源：Makefile PYDEPS）",
+        "evidence": "命令: python3 -c \"import pyopenssl\"\n输出: ModuleNotFoundError: No module named 'pyopenssl'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心测试依赖 pytest（来源：Makefile PYDEPS）",
+        "evidence": "命令: python3 -c \"import pytest\"\n输出: ModuleNotFoundError: No module named 'pytest'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1 (psutil): 亲自运行 `/opt/conda/bin/python3 -c 'import psutil'` 确认报 ModuleNotFoundError，指控成立\n- 指控2 (pyopenssl): 亲自运行 `/opt/conda/bin/python3 -c 'import OpenSSL'` 确认报 ModuleNotFoundError，指控成立（导入名为 OpenSSL）\n- 指控3 (pytest): 亲自运行 `/opt/conda/bin/python3 -c 'import pytest'` 确认报 ModuleNotFoundError，指控成立\n\n这些依赖在 Makefile 的 PYDEPS 中明确声明为项目依赖，Setup Agent 未安装导致不可用。"
+  },
+  {
+    "repo": "sentry-python",
+    "full": "getsentry/sentry-python",
+    "repo_url": "https://github.com/getsentry/sentry-python",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装 devenv-requirements.txt 中声明的 pytest-asyncio 依赖",
+        "evidence": "devenv-requirements.txt 包含 'pytest-asyncio'\n命令: /opt/conda/bin/python3 -c 'import pytest_asyncio'\n输出: ModuleNotFoundError: No module named 'pytest_asyncio'"
+      },
+      {
+        "claim": "Setup Agent 未安装 pytest-django，导致 pytest.ini 中 DJANGO_SETTINGS_MODULE 配置无法生效",
+        "evidence": "pytest.ini 声明 DJANGO_SETTINGS_MODULE\n命令: /opt/conda/bin/python3 -c 'import pytest_django'\n输出: ModuleNotFoundError: No module named 'pytest_django'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1：驳回。pytest-asyncio 仅在 devenv-requirements.txt（开发依赖文件）中声明，不在 setup.py 核心依赖或 extras_require 中。Setup Agent 职责是安装核心依赖，开发/测试依赖不属于必须安装范围。指控2：驳回。pytest-django 同样仅在测试相关依赖文件中，属于测试依赖而非核心依赖。pytest.ini 中的 DJANGO_SETTINGS_MODULE 是测试配置，不影响核心功能。综合：两条指控涉及的依赖均为开发/测试依赖，非核心依赖，Setup Agent 无失职。"
+  },
+  {
+    "repo": "giskard",
+    "full": "giskard-ai/giskard",
+    "repo_url": "https://github.com/giskard-ai/giskard",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "flavio",
+    "full": "flav-io/flavio",
+    "repo_url": "https://github.com/flav-io/flavio",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "[检察官未完成调查] 步数耗尽（成功步数=30, API失败=0）",
+        "evidence": "检察官未能正常完成调查流程，请法官独立进入容器验证环境状态"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：检察官称'步数耗尽未完成调查'，但这不是技术性依赖指控。法官亲自验证：1) flavio 包成功导入（v2.5.5）；2) 所有核心依赖（numpy, scipy, pyyaml, ckmutil, wilson, particle, parton）均可导入；3) 项目结构完整。环境实际可用，Setup Agent 完成了核心职责。检察官因步数限制未完成调查，不代表环境配置失败。"
+  },
+  {
+    "repo": "yapf",
+    "full": "google/yapf",
+    "repo_url": "https://github.com/google/yapf",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装项目本身（yapf），导致 yapf_third_party 模块不可用",
+        "evidence": "命令: /opt/conda/bin/python3 -m pip show yapf\n输出: WARNING: Package(s) not found: yapf\n\n命令: cd /data/project && /opt/conda/bin/python3 -m unittest discover -p '*_test.py' yapftests/ 2>&1 | tail -20\n输出: FAILED (errors=21)\n所有测试因 ModuleNotFoundError: No module named 'yapf_third_party' 失败"
+      },
+      {
+        "claim": "Setup Agent 未执行 pip install . 安装项目，导致测试无法运行",
+        "evidence": "pyproject.toml 声明了项目结构和依赖，但项目未被安装。命令: cd /tmp && /opt/conda/bin/python3 -c 'import yapf'\n输出: ModuleNotFoundError: No module named 'yapf'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证 pip show yapf 确认包未安装，import yapf_third_party 报 ModuleNotFoundError。yapf_third_party 在 pyproject.toml 的 [tool.setuptools.package-dir] 中声明为核心包，不是可选依赖。指控2成立：亲自验证 cd /data/project && python -c 'import yapf' 失败，原因是缺少 yapf_third_party。测试运行确实因模块未安装而失败（21个错误）。两条指控均确认 Setup Agent 未执行 pip install . 安装项目。"
+  },
+  {
+    "repo": "acme",
+    "full": "google-deepmind/acme",
+    "repo_url": "https://github.com/google-deepmind/acme",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 absl-py（来源：setup.py 第47-53行 core_requirements）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import absl'\n输出: ModuleNotFoundError: No module named 'absl'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 dm-env（来源：setup.py 第47-53行 core_requirements）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import dm_env'\n输出: ModuleNotFoundError: No module named 'dm_env'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 dm-tree（来源：setup.py 第47-53行 core_requirements）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import tree'\n输出: ModuleNotFoundError: No module named 'tree'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 numpy（来源：setup.py 第47-53行 core_requirements）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import numpy'\n输出: ModuleNotFoundError: No module named 'numpy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pillow（来源：setup.py 第47-53行 core_requirements）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import PIL'\n输出: ModuleNotFoundError: No module named 'PIL'"
+      },
+      {
+        "claim": "Setup Agent 未安装项目本身 dm-acme（来源：setup.py 定义的项目）",
+        "evidence": "命令: /opt/conda/bin/pip show dm-acme\n输出: WARNING: Package(s) not found: dm-acme"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：setup.py testing_requirements）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1-5：核心依赖（absl-py, dm-env, dm-tree, numpy, pillow）均未安装，亲自验证确认 ModuleNotFoundError，成立。指控6：项目本身 dm-acme 未安装，pip show 确认未找到，成立。指控7：pytest 属于 testing_requirements，在 setup.py 中定义为 extras_require 可选依赖，非核心依赖，根据判定标准驳回。综合：有5条核心依赖指控+1条项目安装指控成立，裁决 guilty。"
+  },
+  {
+    "repo": "guardrails",
+    "full": "guardrails-ai/guardrails",
+    "repo_url": "https://github.com/guardrails-ai/guardrails",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 lxml（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import lxml'\n输出: ModuleNotFoundError: No module named 'lxml'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 openai（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import openai'\n输出: ModuleNotFoundError: No module named 'openai'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 typer（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import typer'\n输出: ModuleNotFoundError: No module named 'typer'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 griffe（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import griffe'\n输出: ModuleNotFoundError: No module named 'griffe'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 tenacity（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import tenacity'\n输出: ModuleNotFoundError: No module named 'tenacity'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 python-dateutil（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import dateutil'\n输出: ModuleNotFoundError: No module named 'dateutil'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 tiktoken（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import tiktoken'\n输出: ModuleNotFoundError: No module named 'tiktoken'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 nltk（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import nltk'\n输出: ModuleNotFoundError: No module named 'nltk'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [tool.poetry.group.dev.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --version\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1 (lxml): 成立，亲自验证 /opt/conda/bin/python3 -c 'import lxml' 报 ModuleNotFoundError\n- 指控2 (openai): 成立，亲自验证 /opt/conda/bin/python3 -c 'import openai' 报 ModuleNotFoundError\n- 指控3 (typer): 成立，亲自验证 /opt/conda/bin/python3 -c 'import typer' 报 ModuleNotFoundError\n- 指控4 (griffe): 成立，亲自验证 /opt/conda/bin/python3 -c 'import griffe' 报 ModuleNotFoundError\n- 指控5 (tenacity): 成立，亲自验证 /opt/conda/bin/python3 -c 'import tenacity' 报 ModuleNotFoundError\n- 指控6 (python-dateutil): 成立，亲自验证 /opt/conda/bin/python3 -c 'import dateutil' 报 ModuleNotFoundError\n- 指控7 (tiktoken): 成立，亲自验证 /opt/conda/bin/python3 -c 'import tiktoken' 报 ModuleNotFoundError\n- 指控8 (nltk): 成立，亲自验证 /opt/conda/bin/python3 -c 'import nltk' 报 ModuleNotFoundError\n- 指控9 (pytest): 成立，亲自验证 /opt/conda/bin/python3 -m pytest --version 报 No module named pytest\n\n综合裁决：所有9条指控均成立。pyproject.toml 明确声明这些为核心依赖或开发依赖，但 Setup Agent 未安装它们。这是一个 Poetry 项目，但环境中未使用 poetry install 或 pip 安装这些依赖。"
+  },
+  {
+    "repo": "mteb",
+    "full": "embeddings-benchmark/mteb",
+    "repo_url": "https://github.com/embeddings-benchmark/mteb",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "gpflow",
+    "full": "gpflow/gpflow",
+    "repo_url": "https://github.com/gpflow/gpflow",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试核心依赖 pytest（来源：tests_requirements.txt 中声明 'pytest>=3.5.0'）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试核心依赖 pytest-cov（来源：tests_requirements.txt 中声明 'pytest-cov'）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest_cov'\n输出: ModuleNotFoundError: No module named 'pytest_cov'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试核心依赖 black（来源：tests_requirements.txt 中声明 'black==20.8b1'）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import black'\n输出: ModuleNotFoundError: No module named 'black'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条分析：\n\n指控1（pytest）：验证确认 pytest 确实未安装（import 失败）。但根据 setup.py，pytest 不在 install_requires 核心依赖中，仅出现在 tests_requirements.txt 测试依赖文件中。测试依赖不属于 Setup Agent 必须安装的核心依赖范围。→ 驳回\n\n指控2（pytest-cov）：验证确认 pytest_cov 确实未安装。同样，该依赖仅在 tests_requirements.txt 中声明，不在 setup.py 的 install_requires 或 extras_require 中。→ 驳回\n\n指控3（black）：验证确认 black 确实未安装。black 是代码格式化工具，属于开发依赖，仅在 tests_requirements.txt 中声明，非核心依赖。→ 驳回\n\n综合裁决：三条指控涉及的依赖均属于测试/开发依赖，非 setup.py 中声明的核心依赖（install_requires）。Setup Agent 的职责是确保核心依赖可用来运行包本身，而非安装所有测试依赖。因此所有指控均驳回，裁决 not_guilty。"
+  },
+  {
+    "repo": "recipe-scrapers",
+    "full": "hhursev/recipe-scrapers",
+    "repo_url": "https://github.com/hhursev/recipe-scrapers",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心开发依赖 responses（来源：requirements-dev.txt）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import responses\"\n输出: ModuleNotFoundError: No module named 'responses'\n\n命令: /opt/conda/bin/python3 -m unittest discover -s tests -v 2>&1 | tail -100\n输出: ERROR: legacy (unittest.loader._FailedTest.legacy)\nImportError: Failed to import test module: legacy\nFile \"/data/project/tests/legacy/__init__.py\", line 4, in <module>\nimport responses\nModuleNotFoundError: No module named 'responses'\n\nRan 26 tests in 0.004s\nFAILED (errors=1)"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1 成立：亲自验证确认 responses 在 requirements-dev.txt 中声明，且 /opt/conda/bin/python3 -c 'import responses' 确实报 ModuleNotFoundError。这导致 tests/legacy/__init__.py 无法导入，测试失败。Setup Agent 未安装开发依赖文件中声明的包，属于失职。"
+  },
+  {
+    "repo": "trax",
+    "full": "google/trax",
+    "repo_url": "https://github.com/google/trax",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 修改了项目源代码文件 trax/data/tf_inputs.py（使用 sed 命令修改第 33 行，注释掉原始导入并添加自定义类）",
+        "evidence": "命令: head -45 /data/project/trax/data/tf_inputs.py | tail -15\n输出: import scipy.special\nimport tensorflow as tf\n# from tensorflow import estimator as tf_estimator  # Removed for TF 2.x compatibility\nclass _ModeKeys:\n    TRAIN = \"train\"\n    EVAL = \"eval\"\ntf_estimator = type(\"tf_estimator\", (), {\"ModeKeys\": _ModeKeys})()\nimport tensorflow_datasets as tfds"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1 成立：亲自验证 trax/data/tf_inputs.py 文件，确认第33行原始导入语句被注释掉（# from tensorflow import estimator as tf_estimator # Removed for TF 2.x compatibility），并添加了自定义的 tf_estimator 类（tf_estimator = type(\"tf_estimator\", (), {\"ModeKeys\": _ModeKeys})()）。这是对项目源代码的修改，Setup Agent 不应修改项目源代码文件，属于失职行为。"
+  },
+  {
+    "repo": "plotnine",
+    "full": "has2k1/plotnine",
+    "repo_url": "https://github.com/has2k1/plotnine",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import matplotlib; import pandas; import mizani; import numpy; import scipy; import statsmodels\"\n输出: ModuleNotFoundError: No module named 'matplotlib'\n\n命令: /opt/conda/bin/python3 -c \"import plotnine\"\n输出: ModuleNotFoundError: No module named 'numpy'\n\n命令: /opt/conda/bin/python3 -m pip list\n输出: 未显示任何核心依赖包（matplotlib, pandas, mizani, numpy, scipy, statsmodels 均缺失）"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认：(1) /opt/conda/bin/python3 -m pip list 显示环境中未安装 matplotlib, pandas, numpy, scipy, statsmodels, mizani；(2) 执行导入命令确实报 ModuleNotFoundError: No module named 'matplotlib'；(3) pyproject.toml 的 [project.dependencies] 明确声明这些包是核心依赖，非可选依赖。Setup Agent 未能安装项目核心依赖，导致项目无法使用。"
+  },
+  {
+    "repo": "autograd",
+    "full": "hips/autograd",
+    "repo_url": "https://github.com/hips/autograd",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest，导致测试套件无法运行（来源：tox.ini [testenv] deps = pytest，且所有测试文件均 import pytest）",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q 2>&1\n输出: /opt/conda/bin/python3: No module named pytest\n\n命令: cd /data/project && PYTHONPATH=. /opt/conda/bin/python3 -m unittest discover -s tests -p 'test_*.py' 2>&1 | head -20\n输出: ModuleNotFoundError: No module named 'pytest' (多个测试文件因缺少 pytest 而无法导入)"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：pytest 是测试框架依赖，仅在 tox.ini 的 [testenv] deps 中声明，不在 pyproject.toml 的核心依赖（dependencies）或可选依赖（optional-dependencies）中。Setup Agent 的职责是安装项目核心依赖使其可导入使用，而非配置完整测试环境。验证确认：核心依赖 numpy、six 及 autograd 本身均可正常导入。测试依赖缺失不属于 Setup Agent 失职。"
+  },
+  {
+    "repo": "datasets",
+    "full": "huggingface/datasets",
+    "repo_url": "https://github.com/huggingface/datasets",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试核心依赖 pytest（来源：setup.py TESTS_REQUIRE）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest tests/test_filelock.py -v\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1：检察官指控 Setup Agent 未安装 pytest。经验证：(1) pytest 确实未安装；(2) 但根据 setup.py，pytest 在 TESTS_REQUIRE 中，而非 REQUIRED_PKGS（核心依赖）。TESTS_REQUIRE 属于测试依赖/可选依赖，不是 install_requires 中的核心依赖。根据判定标准，'依赖仅在可选 extras 中，非核心依赖'应驳回。Setup Agent 的职责是确保核心依赖可用，测试依赖属于可选范围，未安装测试依赖不构成失职。"
+  },
+  {
+    "repo": "civet",
+    "full": "idaholab/civet",
+    "repo_url": "https://github.com/idaholab/civet",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未确保 Django 迁移文件存在（ci/migrations/ 目录为空），导致数据库表无法创建，346 个测试错误",
+        "evidence": "命令: ls -la /data/project/ci/migrations/\n输出: total 20\ndrwxr-xr-x 1 root root 4096 Apr  2 15:13 .\ndrwxr-xr-x 1 root root 4096 Apr  2 15:12 ..\n-rw-r--r-- 1 root root  595 Apr  2 15:12 __init__.py\ndrwxr-xr-x 2 root root 4096 Apr  2 15:13 __pycache__\n\n命令: /opt/conda/bin/python3 ./manage.py makemigrations --dry-run\n输出: Migrations for 'ci':\n  ci/migrations/0001_initial.py\n    - Create model Branch\n    - Create model BuildConfig\n    ... (需要创建 30+ 个模型迁移)\n\n命令: /opt/conda/bin/python3 ./manage.py test --parallel=1\n输出: FAILED (failures=2, errors=346, skipped=55)\n错误原因: sqlite3.OperationalError: no such table: ci_gitserver"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认 ci/migrations/ 目录为空（仅有__init__.py），makemigrations --dry-run 显示需要创建30+个初始迁移，测试运行时出现 'sqlite3.OperationalError: no such table: ci_client' 错误。这是 Django 项目配置的基本要求，Setup Agent 应运行 makemigrations 和 migrate 来生成并应用迁移文件，但未能完成此任务，导致346个测试错误。"
+  },
+  {
+    "repo": "keyring",
+    "full": "jaraco/keyring",
+    "repo_url": "https://github.com/jaraco/keyring",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "pip-tools",
+    "full": "jazzband/pip-tools",
+    "repo_url": "https://github.com/jazzband/pip-tools",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未正确配置核心依赖 click 版本，导致 528 个测试错误",
+        "evidence": "依赖声明: pyproject.toml [project.dependencies] 中声明 'click >= 8'\n取证命令: /opt/conda/bin/python3 -c 'import click; print(click.__version__)'\n输出: 8.2.1\n取证命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=no -q\n输出: 2 failed, 395 passed, 2 xfailed, 3 warnings, 528 errors in 5.09s\n错误原因: click 8.2+ 移除了 CliRunner 的 mix_stderr 参数，tests/conftest.py:230 使用 CliRunner(mix_stderr=False) 导致 TypeError"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：经亲自验证，click 8.2.1 已正确安装且满足 pyproject.toml 中 'click >= 8' 的依赖声明。测试失败是因为项目代码 tests/conftest.py:230 使用了 click 8.2+ 已移除的 mix_stderr 参数，这是项目代码与依赖版本的兼容性问题，属于测试逻辑问题，非 Setup Agent 失职。Setup Agent 的职责是安装符合版本声明的依赖，该职责已正确履行。"
+  },
+  {
+    "repo": "tablib",
+    "full": "jazzband/tablib",
+    "repo_url": "https://github.com/jazzband/tablib",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "wagtailmenus",
+    "full": "jazzband/wagtailmenus",
+    "repo_url": "https://github.com/jazzband/wagtailmenus",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试套件失败：175 个测试中 46 个错误",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 runtests.py --verbosity=1\n输出: Ran 175 tests in 14.607s\nFAILED (errors=46)\n\n错误示例: TypeError: expected string or bytes-like object, got 'int'\n位置: wagtailmenus/menuadmin.py line 33, unquote(kwargs['pk'])"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：检察官指控测试套件失败（46个错误）。经验证：(1) 核心包 wagtailmenus 可正常导入；(2) 核心依赖 django-cogwheels 已正确安装（pip show 确认），正确导入名为 'cogwheels'；(3) 测试错误是 TypeError（代码逻辑问题），不是 ModuleNotFoundError（依赖缺失）。Setup Agent 已正确配置环境，测试失败是项目代码本身的问题，不属于 Setup Agent 失职范围。"
+  },
+  {
+    "repo": "memegen",
+    "full": "jacebrowning/memegen",
+    "repo_url": "https://github.com/jacebrowning/memegen",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试失败：app/tests/test_models_template.py::describe_template::describe_str::it_includes_the_path 断言失败，期望路径包含 '/memegen/templates/_test' 但实际是 '/data/project/templates/_test'",
+        "evidence": "命令: /root/.cache/pypoetry/virtualenvs/memegen-kxQaJaVI-py3.12/bin/python -m pytest --tb=line -q\n输出: 1 failed, 251 passed, 2 xfailed, 5715 warnings in 110.98s\nFAILED app/tests/test_models_template.py::describe_template::describe_str::it_includes_the_path\nAssertionError: Expected '/data/project/templates/_test' to end with '/memegen/templates/_test' but it didn't"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：测试失败原因是测试代码硬编码了路径期望'/memegen/templates/_test'，但项目实际克隆在'/data/project'目录。这是测试代码本身的问题（对绝对路径的硬编码假设），而非依赖缺失或编译失败。亲自验证确认所有核心依赖（datafiles, sanic, pytest）均可正常导入。根据判定标准，'失败原因是测试逻辑，非Setup Agent失职'属于驳回情形。"
+  },
+  {
+    "repo": "kernel_tuner",
+    "full": "kerneltuner/kernel_tuner",
+    "repo_url": "https://github.com/kerneltuner/kernel_tuner",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 安装的 numpy 版本 (2.4.4) 与项目代码不兼容，导致测试收集失败",
+        "evidence": "pyproject.toml 声明 numpy = \">=1.26.0\" 允许安装 numpy 2.x\n命令: /root/.cache/pypoetry/virtualenvs/kernel-tuner-kxQaJaVI-py3.12/bin/python -m pytest --tb=line -q\n输出: ERROR collecting test/strategies/test_bayesian_optimization.py\nE   AttributeError: `np.PINF` was removed in the NumPy 2.0 release. Use `np.inf` instead.\n!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!"
+      },
+      {
+        "claim": "Setup Agent 配置的环境测试覆盖率未达标",
+        "evidence": "pyproject.toml 配置 --cov-fail-under=60\n命令: /root/.cache/pypoetry/virtualenvs/kernel-tuner-kxQaJaVI-py3.12/bin/python -m pytest --tb=line -q\n输出: FAIL Required test coverage of 60% not reached. Total coverage: 23.03%"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认虚拟环境中numpy 2.4.4已安装，运行测试时确实出现`np.PINF` AttributeError（NumPy 2.0移除的API），导致测试收集失败。这是Setup Agent的失职——允许安装与项目代码不兼容的numpy 2.x版本。指控2驳回：覆盖率23.03%是指控1导致测试中断的假象。排除numpy兼容性问题后完整运行测试，覆盖率61.64%达到60%要求。覆盖率问题非独立缺陷，而是指控1的连带效应。综合：至少1条指控成立，裁决guilty。"
+  },
+  {
+    "repo": "meerkat",
+    "full": "hazyresearch/meerkat",
+    "repo_url": "https://github.com/hazyresearch/meerkat",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "langgraph",
+    "full": "langchain-ai/langgraph",
+    "repo_url": "https://github.com/langchain-ai/langgraph",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "lark",
+    "full": "lark-parser/lark",
+    "repo_url": "https://github.com/lark-parser/lark",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装 test-requirements.txt 中声明的测试依赖（interegular, regex, js2py），导致 130 个测试被跳过，测试环境配置不完整",
+        "evidence": "命令: cat /data/project/test-requirements.txt\n输出: interegular>=0.3.1,<0.4.0\\nJs2Py==0.68\\nregex\n\n命令: /opt/conda/bin/python3 -c \"import interegular\"\n输出: ModuleNotFoundError: No module named 'interegular'\n\n命令: /opt/conda/bin/python3 -c \"import regex\"\n输出: ModuleNotFoundError: No module named 'regex'\n\n命令: /opt/conda/bin/python3 -c \"import js2py\"\n输出: ModuleNotFoundError: No module named 'js2py'\n\n测试输出显示: 'Ran 1103 tests in 2.379s\\nOK (skipped=130)'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：检察官指控 Setup Agent 未安装 interegular、regex、js2py。我亲自验证确认这些包确实未安装（import 失败），但从 pyproject.toml 可见，核心依赖 dependencies = [] 为空，而 interegular、regex、js2py 均在 [project.optional-dependencies] 中声明，属于可选依赖而非核心依赖。根据判定标准，'依赖仅在可选 extras 中，非核心依赖'属于驳回情形。Setup Agent 的职责是确保核心依赖可用，可选依赖不是必须安装的。130 个测试被跳过是因为这些可选功能未启用，而非环境配置失职。"
+  },
+  {
+    "repo": "umap",
+    "full": "lmcinnes/umap",
+    "repo_url": "https://github.com/lmcinnes/umap",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心测试依赖 pytest（来源：setup.py tests_require: [\"pytest\"]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：虽然 pytest 确实未安装（已用 pip show 验证），但查看 setup.py 确认 pytest 是在 tests_require 中声明的，而非 install_requires 核心依赖中。根据 Python 打包规范，tests_require 是测试依赖，不属于核心依赖范畴，Setup Agent 的职责是安装核心依赖使项目可运行，而非安装测试依赖。因此该指控不成立。"
+  },
+  {
+    "repo": "monty",
+    "full": "materialsvirtuallab/monty",
+    "repo_url": "https://github.com/materialsvirtuallab/monty",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：requirements-ci.txt）",
+        "evidence": "命令: python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 coverage（来源：requirements-ci.txt）",
+        "evidence": "命令: python3 -c 'import coverage'\n输出: ModuleNotFoundError: No module named 'coverage'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 mypy（来源：requirements-ci.txt）",
+        "evidence": "命令: python3 -c 'import mypy'\n输出: ModuleNotFoundError: No module named 'mypy'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 ruff（来源：requirements-ci.txt）",
+        "evidence": "命令: python3 -c 'import ruff'\n输出: ModuleNotFoundError: No module named 'ruff'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条分析：\n- 指控1-4：检察官指控未安装 pytest/coverage/mypy/ruff，这些确实不可导入（我已亲自验证）。但这些依赖来自 requirements-ci.txt，属于测试/CI 依赖，不是核心依赖。pyproject.toml 中 [project].dependencies = [] 为空，说明该库无核心依赖。Setup Agent 的职责是确保核心依赖可用使库能运行，而非安装所有开发/测试工具。根据判定标准，'依赖仅在可选 extras 中，非核心依赖' 应驳回指控。\n综合裁决：所有指控均因依赖性质为测试/开发工具而非核心依赖被驳回。"
+  },
+  {
+    "repo": "hacs_waste_collection_schedule",
+    "full": "mampfes/hacs_waste_collection_schedule",
+    "repo_url": "https://github.com/mampfes/hacs_waste_collection_schedule",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "mopidy",
+    "full": "mopidy/mopidy",
+    "repo_url": "https://github.com/mopidy/mopidy",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 pygobject（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import gi'\n输出: ModuleNotFoundError: No module named 'gi'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pykka（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pykka'\n输出: ModuleNotFoundError: No module named 'pykka'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证：指控1成立 - 亲自运行'/opt/conda/bin/python3 -c 'import gi''确认ModuleNotFoundError，pygobject是核心依赖；指控2成立 - 亲自运行'/opt/conda/bin/python3 -c 'import pykka''确认ModuleNotFoundError，pykka是核心依赖。两条核心依赖均未安装，Setup Agent失职。"
+  },
+  {
+    "repo": "kedro",
+    "full": "kedro-org/kedro",
+    "repo_url": "https://github.com/kedro-org/kedro",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "[检察官未完成调查] 步数耗尽（成功步数=30, API失败=0）",
+        "evidence": "检察官未能正常完成调查流程，请法官独立进入容器验证环境状态"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1（步数耗尽）：这是检察官调查过程问题，非环境配置问题。我亲自验证：1) kedro 可成功导入（版本 0.19.6），虽有 Python 版本兼容性警告但不影响功能；2) 所有核心依赖（attrs, cachetools, click, cookiecutter, dynaconf, fsspec, git, omegaconf, pluggy, yaml, rich）均可导入；3) 测试收集失败是因为警告被提升为错误，非 Setup Agent 失职。环境配置完整，无实质性问题。"
+  },
+  {
+    "repo": "neurogym",
+    "full": "neurogym/neurogym",
+    "repo_url": "https://github.com/neurogym/neurogym",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试失败：test_wrappers.py 导入 TrialHistory 但 neurogym.wrappers 只导出 TrialHistoryV2，造成 ImportError",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'from neurogym.wrappers import TrialHistory'\n输出: ImportError: cannot import name 'TrialHistory' from 'neurogym.wrappers' (/data/project/neurogym/wrappers/__init__.py)\n\n命令: /opt/conda/bin/python3 -m unittest neurogym.tests.test_wrappers -v 2>&1 | tail -20\n输出: ImportError: Failed to import test module: test_wrappers\nTraceback (most recent call last):\n  File \"/data/project/neurogym/tests/test_wrappers.py\", line 10, in <module>\n    from neurogym.wrappers import TrialHistory\nImportError: cannot import name 'TrialHistory' from 'neurogym.wrappers'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：亲自验证确认从 neurogym.wrappers 导入 TrialHistory 确实报 ImportError，且该模块只导出 TrialHistoryV2。但这是项目测试代码本身的问题（测试文件使用了错误的类名），而非 Setup Agent 环境配置失职。neurogym 包已正确安装并可导入，环境配置正常。根据判定标准，'失败原因是测试逻辑，非 Setup Agent 失职'，应驳回指控。"
+  },
+  {
+    "repo": "pytorch-metric-learning",
+    "full": "kevinmusgrave/pytorch-metric-learning",
+    "repo_url": "https://github.com/kevinmusgrave/pytorch-metric-learning",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试套件运行失败：173 个测试中 19 个错误、3 个失败",
+        "evidence": "命令: cd /data/project && PYTHONPATH=/data/project/src:/data/project TEST_DEVICE=cpu /opt/conda/bin/python3 -m unittest discover\n输出: FAILED (failures=3, errors=19, skipped=2)\n\n核心错误示例:\n1. faiss 模块未定义 (NameError: name 'faiss' is not defined) - 影响多个测试\n2. 测试断言失败 (AssertionError: tensor(False) is not true) - test_soft_triple_loss 等\n\n虽然 faiss 在 extras_require 中是可选依赖，但测试失败的根本原因需要法官进一步调查判断是否与环境配置相关。"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：经亲自验证，1) faiss 在 setup.py 中明确声明为 extras_require 可选依赖，非 install_requires 核心依赖；2) 所有核心依赖（numpy, scikit-learn, tqdm, torch）均可正常导入；3) 测试失败的主要原因是缺少可选依赖 faiss，这不属于 Setup Agent 的失职范围。根据判定标准，依赖仅在可选 extras 中声明而非核心依赖的情况应驳回指控。"
+  },
+  {
+    "repo": "nonebot2",
+    "full": "nonebot/nonebot2",
+    "repo_url": "https://github.com/nonebot/nonebot2",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 yarl（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import yarl'\n输出: ModuleNotFoundError: No module named 'yarl'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pygtrie（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pygtrie'\n输出: ModuleNotFoundError: No module named 'pygtrie'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 loguru（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import loguru'\n输出: ModuleNotFoundError: No module named 'loguru'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 python-dotenv（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import dotenv'\n输出: ModuleNotFoundError: No module named 'dotenv'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：指控1（yarl）成立 - 亲自验证 /opt/conda/bin/python3 -c 'import yarl' 报 ModuleNotFoundError；指控2（pygtrie）成立 - 亲自验证 /opt/conda/bin/python3 -c 'import pygtrie' 报 ModuleNotFoundError；指控3（loguru）成立 - 亲自验证 /opt/conda/bin/python3 -c 'import loguru' 报 ModuleNotFoundError；指控4（python-dotenv）成立 - 亲自验证 /opt/conda/bin/python3 -c 'import dotenv' 报 ModuleNotFoundError。以上4个依赖均在 pyproject.toml [tool.poetry.dependencies] 核心依赖区段声明，非 optional 依赖。Setup Agent 未能安装这些核心依赖，导致环境配置不完整。"
+  },
+  {
+    "repo": "netbox",
+    "full": "netbox-community/netbox",
+    "repo_url": "https://github.com/netbox-community/netbox",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装 PostgreSQL 服务器导致测试无法运行（来源：netbox/netbox/configuration_testing.py 要求 DATABASE 配置连接到 localhost:5432）",
+        "evidence": "命令: NETBOX_CONFIGURATION=netbox.configuration_testing /root/.pyenv/versions/3.10.13/bin/python netbox/manage.py test netbox.tests.test_import --verbosity=2\n输出: django.db.utils.OperationalError: connection failed: connection to server at \"127.0.0.1\", port 5432 failed: Connection refused"
+      },
+      {
+        "claim": "Setup Agent 未安装 Redis 服务器（来源：netbox/netbox/configuration_testing.py 要求 REDIS 配置连接到 localhost:6379）",
+        "evidence": "命令: redis-cli ping\n输出: bash: line 1: redis-cli: command not found"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：检察官指控的是PostgreSQL服务器未安装，但这是外部服务依赖，非Python包依赖。用检察官的解释器验证，psycopg客户端库可正常导入。Setup Agent职责是安装Python包，不包括安装数据库服务器。指控2驳回：检察官指控的是Redis服务器未安装，同样是外部服务依赖。django_redis客户端库可正常导入。两条指控都属于'失败原因是外部服务/网络/测试逻辑，非Setup Agent失职'的驳回情形。"
+  },
+  {
+    "repo": "torchgeo",
+    "full": "microsoft/torchgeo",
+    "repo_url": "https://github.com/microsoft/torchgeo",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "river",
+    "full": "online-ml/river",
+    "repo_url": "https://github.com/online-ml/river",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 numpy（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import numpy\"\n输出: ModuleNotFoundError: No module named 'numpy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 scipy（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import scipy\"\n输出: ModuleNotFoundError: No module named 'scipy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pandas（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import pandas\"\n输出: ModuleNotFoundError: No module named 'pandas'"
+      },
+      {
+        "claim": "Setup Agent 未配置有效环境导致 475 个测试收集错误",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: Interrupted: 475 errors during collection (ModuleNotFoundError: No module named 'numpy')"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：指控1 成立 - 亲自验证 /opt/conda/bin/python3 -c 'import numpy' 报 ModuleNotFoundError；指控2 成立 - 亲自验证 /opt/conda/bin/python3 -c 'import scipy' 报 ModuleNotFoundError；指控3 成立 - 亲自验证 /opt/conda/bin/python3 -c 'import pandas' 报 ModuleNotFoundError；指控4 成立 - 亲自验证 pytest 确实有 475 errors during collection，错误根源是缺少 numpy。以上三个包均在 pyproject.toml [tool.poetry.dependencies] 中声明为核心依赖，非 optional。Setup Agent 未能安装这些核心依赖，导致环境不可用。"
+  },
+  {
+    "repo": "openqasm",
+    "full": "openqasm/openqasm",
+    "repo_url": "https://github.com/openqasm/openqasm",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心测试依赖 pytest（来源：source/openqasm/setup.cfg [options.extras_require] tests）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import pytest\"\n输出: ModuleNotFoundError: No module named 'pytest'"
+      },
+      {
+        "claim": "Setup Agent 未安装 pytest 导致无法运行测试套件",
+        "evidence": "命令: cd /data/project/source/openqasm && /opt/conda/bin/python3 -m pytest --tb=line -q --timeout=60\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条说明：\n指控1：驳回。从 setup.cfg 验证确认，pytest 在 [options.extras_require] tests 中声明，属于可选测试依赖，不是核心依赖（[options] 部分无 install_requires）。根据判定标准，依赖仅在可选 extras 中应驳回。\n指控2：驳回。同理，pytest 是 optional extras 依赖，非核心依赖。无法运行测试套件是因为测试依赖未安装，但这是可选功能，不是 Setup Agent 的核心职责。\n综合裁决：两条指控均针对可选依赖 pytest，非核心依赖，故全部驳回。"
+  },
+  {
+    "repo": "automlbenchmark",
+    "full": "openml/automlbenchmark",
+    "repo_url": "https://github.com/openml/automlbenchmark",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境存在测试失败（6 个测试失败），原因不明，可能是依赖配置不完整或环境设置问题",
+        "evidence": "命令：cd /data/project && /root/.pyenv/versions/3.9.18/bin/python -m pytest --tb=line -q\n输出：6 failed, 145 passed, 1 skipped\nFAILED tests/unit/amlb/datasets/openml/test_openml_dataloader.py::test_load_regression_task - AssertionError: assert 2 == 6\nFAILED tests/unit/amlb/uploads/test_file_loading.py::test__load_fold_loads_prediction_file - OpenMLServerException: Authentication failed\nFAILED tests/unit/amlb/uploads/test_file_loading.py::test__load_fold_attaches_correct_index_information - OpenMLServerException: Authentication failed\nFAILED tests/unit/amlb/uploads/test_file_loading.py::test__load_predictions_loads_all_files - OpenMLServerException: Authentication failed\nFAILED tests/unit/amlb/uploads/test_file_loading.py::test__upload_results_constant - OpenMLServerException: Authentication failed\nFAILED tests/unit/amlb/uploads/test_file_loading.py::test__upload_results_h2o - OpenMLServerException: Authentication failed"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：亲自验证确认，6个测试失败的原因是：(1) 5个测试因 OpenMLServerException: Authentication failed 失败，这是外部服务认证问题，需要有效的 OpenML API 密钥；(2) 1个测试因 OpenMLCacheException 失败，需要从外部 OpenML 服务器获取任务数据。这些都不是依赖配置问题。核心模块 amlb 可正常导入，说明核心依赖配置完整。根据判定标准，失败原因是外部服务/网络问题，非 Setup Agent 失职，应驳回。"
+  },
+  {
+    "repo": "piccolo",
+    "full": "piccolo-orm/piccolo",
+    "repo_url": "https://github.com/piccolo-orm/piccolo",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：requirements/test-requirements.txt 声明 pytest==6.2.5）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --collect-only -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest-cov 和 coveralls（来源：requirements/test-requirements.txt）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pip list | grep -i pytest\n输出: (empty, pytest not installed)"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：pytest 确实未安装，但它是测试依赖（位于独立的 test-requirements.txt），不在 setup.py 的 install_requires 核心依赖中，也不在 extras_require 可选依赖中。Setup Agent 只需安装核心依赖，测试依赖不属于其职责范围。指控2驳回：同理，pytest-cov 和 coveralls 也是测试依赖，非核心依赖。综合裁决：所有指控均因'依赖非核心依赖'而驳回，Setup Agent 无失职。"
+  },
+  {
+    "repo": "neuralforecast",
+    "full": "nixtla/neuralforecast",
+    "repo_url": "https://github.com/nixtla/neuralforecast",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖（来源：settings.ini requirements 字段）",
+        "evidence": "settings.ini 声明: requirements = coreforecast>=0.0.6 fsspec numpy>=1.21.6 pandas>=1.3.5 torch>=2.0.0 pytorch-lightning>=2.0.0 ray[tune]>=2.2.0 optuna utilsforecast>=0.0.25\n\n验证命令: for pkg in coreforecast fsspec numpy pandas torch pytorch_lightning ray optuna utilsforecast; do /opt/conda/bin/python3 -c \"import $pkg\" 2>&1 && echo \"$pkg: OK\" || echo \"$pkg: MISSING\"; done\n\n输出: 所有 9 个核心依赖全部 MISSING:\ncoreforecast: MISSING\nfsspec: MISSING\nnumpy: MISSING\npandas: MISSING\ntorch: MISSING\npytorch_lightning: MISSING\nray: MISSING\noptuna: MISSING\nutilsforecast: MISSING"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：我亲自使用/opt/conda/bin/python3验证了settings.ini中声明的9个核心依赖（coreforecast, fsspec, numpy, pandas, torch, pytorch_lightning, ray, optuna, utilsforecast），所有包均报ModuleNotFoundError。这些是settings.ini中requirements字段直接声明的核心依赖，不是可选依赖。失败原因是包未安装，非外部服务或网络问题。"
+  },
+  {
+    "repo": "platformio-core",
+    "full": "platformio/platformio-core",
+    "repo_url": "https://github.com/platformio/platformio-core",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境存在核心依赖 bottle 与 Python 版本不兼容问题（来源：setup.py 通过 get_pip_dependencies() 声明 bottle == 0.12.*）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import bottle'\n输出: ModuleNotFoundError: No module named 'cgi'\n说明: bottle 0.12.25 依赖 Python 3.13 已移除的 cgi 模块"
+      },
+      {
+        "claim": "Setup Agent 未安装测试运行工具 pytest（来源：tox.ini [testenv] deps 和 Makefile test 目标）",
+        "evidence": "命令: pip list | grep -i pytest\n输出: (无结果)\n说明: pytest 是运行测试套件所必需的依赖，但未安装"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证 /opt/conda/bin/python3 -c 'import bottle' 确实报 ModuleNotFoundError: No module named 'cgi'，bottle 0.12.25 与 Python 3.13 不兼容。指控2驳回：pytest 确实未安装，但它不在 setup.py 的 install_requires 核心依赖中（仅在 tox.ini 测试配置中），属于测试依赖而非核心依赖，Setup Agent 未安装测试工具不属于核心依赖缺失。综合：至少1条指控成立，裁决 guilty。"
+  },
+  {
+    "repo": "smart_open",
+    "full": "piskvorky/smart_open",
+    "repo_url": "https://github.com/piskvorky/smart_open",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 可能安装了不兼容的 azure-storage-blob 版本，导致 smart_open 的 azure 模块测试失败",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest smart_open/tests/test_azure.py::WriterTest::test_nonexisting_container -v --tb=short\n输出: AttributeError: 'Writer' object has no attribute '_blob'\n\n命令: /opt/conda/bin/python3 -m pip show azure-storage-blob\n输出: Version: 12.28.0"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：从 setup.py 验证确认 azure_deps = ['azure-storage-blob', 'azure-common', 'azure-core'] 是在 extras_require['azure'] 中定义的可选依赖，而非核心依赖（install_requires=base_deps）。核心模块 smart_open 可以正常导入，说明核心依赖安装正确。根据判定标准，可选依赖不在 Setup Agent 核心职责范围内，测试失败不属于 Setup Agent 失职。"
+  },
+  {
+    "repo": "improv",
+    "full": "project-improv/improv",
+    "repo_url": "https://github.com/project-improv/improv",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖（来源：pyproject.toml [project.dependencies] 声明的 numpy, scipy, matplotlib, pyarrow, PyQt5, lmdb, pyyaml, textual, pyzmq, psutil, h5py）",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -c \"import numpy; import scipy; import matplotlib; import pyarrow; import PyQt5; import lmdb; import yaml; import textual; import zmq; import psutil; import h5py\"\n输出: ModuleNotFoundError: No module named 'numpy' (以及所有其他依赖均报同样的错误)\n补充证据 - pip list 显示仅有 conda 基础包，无项目依赖"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：pyproject.toml [project.dependencies] 中声明的核心依赖（numpy, scipy, matplotlib, pyarrow, PyQt5, lmdb, pyyaml, textual, pyzmq, psutil, h5py）均未安装。亲自验证：/opt/conda/bin/python3 -c 'import numpy' 报 ModuleNotFoundError，pip list 显示仅有 conda 基础包，无项目依赖。Setup Agent 未完成核心依赖安装任务。"
+  },
+  {
+    "repo": "great-tables",
+    "full": "posit-dev/great-tables",
+    "repo_url": "https://github.com/posit-dev/great-tables",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 commonmark（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import commonmark'\n输出: ModuleNotFoundError: No module named 'commonmark'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 htmltools（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import htmltools'\n输出: ModuleNotFoundError: No module named 'htmltools'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 importlib-metadata（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import importlib_metadata'\n输出: ModuleNotFoundError: No module named 'importlib_metadata'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 numpy（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import numpy'\n输出: ModuleNotFoundError: No module named 'numpy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 Babel（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import babel'\n输出: ModuleNotFoundError: No module named 'babel'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 importlib-resources（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import importlib_resources'\n输出: ModuleNotFoundError: No module named 'importlib_resources'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：指控1 (commonmark) 成立 - 亲自验证 /opt/conda/bin/python3 -c 'import commonmark' 报 ModuleNotFoundError；指控2 (htmltools) 成立 - 亲自验证导入失败；指控3 (importlib-metadata) 成立 - importlib_metadata 导入失败；指控4 (numpy) 成立 - numpy 导入失败；指控5 (Babel) 成立 - babel 导入失败；指控6 (importlib-resources) 成立 - importlib_resources 导入失败。所有6个核心依赖均未安装，pip list 仅显示 typing_extensions 已安装。Setup Agent 未能正确安装 pyproject.toml 中声明的核心依赖。"
+  },
+  {
+    "repo": "pip",
+    "full": "pypa/pip",
+    "repo_url": "https://github.com/pypa/pip",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "pretalx",
+    "full": "pretalx/pretalx",
+    "repo_url": "https://github.com/pretalx/pretalx",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 beautifulsoup4（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import bs4'\n输出: ModuleNotFoundError: No module named 'bs4'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 bleach（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import bleach'\n输出: ModuleNotFoundError: No module named 'bleach'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 celery（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import celery'\n输出: ModuleNotFoundError: No module named 'celery'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 Django（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import django'\n输出: ModuleNotFoundError: No module named 'django'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 djangorestframework（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import rest_framework'\n输出: ModuleNotFoundError: No module named 'rest_framework'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 Pillow（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import PIL'\n输出: ModuleNotFoundError: No module named 'PIL'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [project.optional-dependencies.dev]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --collect-only\n输出: /opt/conda/bin/python3: No module named pytest"
+      },
+      {
+        "claim": "Setup Agent 未安装依赖导致测试无法运行",
+        "evidence": "命令: cd /data/project/src && /opt/conda/bin/python3 manage.py test\n输出: ModuleNotFoundError: No module named 'django'"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1（beautifulsoup4）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import bs4' 报 ModuleNotFoundError\n- 指控2（bleach）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import bleach' 报 ModuleNotFoundError\n- 指控3（celery）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import celery' 报 ModuleNotFoundError\n- 指控4（Django）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import django' 报 ModuleNotFoundError\n- 指控5（djangorestframework）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import rest_framework' 报 ModuleNotFoundError\n- 指控6（Pillow）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import PIL' 报 ModuleNotFoundError\n- 指控7（pytest）：驳回 - pytest 在 pyproject.toml [project.optional-dependencies.dev] 中声明，属于可选依赖，非核心依赖，Setup Agent 无义务安装\n- 指控8（测试无法运行）：成立 - 亲自验证 cd /data/project/src && python3 manage.py test 因 Django 未安装而失败，这是核心依赖缺失导致的\n\n综合裁决：至少1条核心依赖指控成立（实际6条核心依赖+1条测试运行指控成立），Setup Agent 未能安装核心依赖，裁决 guilty。"
+  },
+  {
+    "repo": "pytest-xdist",
+    "full": "pytest-dev/pytest-xdist",
+    "repo_url": "https://github.com/pytest-dev/pytest-xdist",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试套件失败（2 failed, 189 passed）",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: 2 failed, 189 passed, 6 skipped, 10 xfailed in 21.81s\nFAILED testing/test_newhooks.py::TestCrashItem::test_handlecrashitem_one\nFAILED testing/test_remote.py::test_remote_usage_prog"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：亲自验证两个失败测试。test_handlecrashitem_one 失败是因为测试期望的输出格式与实际输出不匹配（fnmatch_lines 断言失败）；test_remote_usage_prog 失败是因为 AttributeError: 'Parser' object has no attribute '_getparser'，这是 pytest 内部 API 变更导致的代码兼容性问题。两者都是测试逻辑/项目代码问题，非核心依赖缺失或编译失败。189 个测试通过证明环境配置正确，pytest-xdist 插件已成功加载。根据判定标准：'失败原因是外部服务/网络/测试逻辑，非 Setup Agent 失职'应驳回。"
+  },
+  {
+    "repo": "twine",
+    "full": "pypa/twine",
+    "repo_url": "https://github.com/pypa/twine",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的依赖版本可能导致测试失败 - tests/test_package.py::test_pkginfo_returns_no_metadata[unsupported Metadata-Version] 失败，期望抛出 InvalidDistribution 异常但未抛出",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q 2>&1 | tail -80\n输出: 1 failed, 201 passed\nFAILED tests/test_package.py::test_pkginfo_returns_no_metadata[unsupported Metadata-Version]\nE   Failed: DID NOT RAISE <class 'twine.exceptions.InvalidDistribution'>"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1驳回：测试失败原因是 pkginfo 库对高版本元数据（102.3）的处理行为变化——发出警告而非抛出 InvalidDistribution 异常。pkginfo 已正确安装且满足项目声明的 >=1.8.1 要求。这是测试逻辑需要更新以适配库行为变化，属于测试逻辑问题，非 Setup Agent 未安装或错误配置依赖。"
+  },
+  {
+    "repo": "python-control",
+    "full": "python-control/python-control",
+    "repo_url": "https://github.com/python-control/python-control",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 numpy（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import numpy\"\n输出: ModuleNotFoundError: No module named 'numpy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 scipy（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import scipy\"\n输出: ModuleNotFoundError: No module named 'scipy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 matplotlib（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import matplotlib\"\n输出: ModuleNotFoundError: No module named 'matplotlib'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [project.optional-dependencies] test）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1（numpy）：核心依赖，亲自验证 /opt/conda/bin/python3 -c 'import numpy' 报 ModuleNotFoundError，成立。指控2（scipy）：核心依赖，亲自验证无法导入，成立。指控3（matplotlib）：核心依赖，亲自验证无法导入，成立。指控4（pytest）：位于 optional-dependencies 中，非核心依赖，根据判定标准驳回。综合：3条核心依赖指控成立，裁决 guilty。"
+  },
+  {
+    "repo": "poetry",
+    "full": "python-poetry/poetry",
+    "repo_url": "https://github.com/python-poetry/poetry",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 poetry-core（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import poetry.core'\n输出: ModuleNotFoundError: No module named 'poetry'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 poetry-plugin-export（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import poetry_plugin_export'\n输出: ModuleNotFoundError: No module named 'poetry_plugin_export'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 build（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import build'\n输出: ModuleNotFoundError: No module named 'build'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 cachecontrol（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import cachecontrol'\n输出: ModuleNotFoundError: No module named 'cachecontrol'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 cleo（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import cleo'\n输出: ModuleNotFoundError: No module named 'cleo'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 dulwich（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import dulwich'\n输出: ModuleNotFoundError: No module named 'dulwich'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 installer（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import installer'\n输出: ModuleNotFoundError: No module named 'installer'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 keyring（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import keyring'\n输出: ModuleNotFoundError: No module named 'keyring'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pexpect（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pexpect'\n输出: ModuleNotFoundError: No module named 'pexpect'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pkginfo（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pkginfo'\n输出: ModuleNotFoundError: No module named 'pkginfo'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pyproject-hooks（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pyproject_hooks'\n输出: ModuleNotFoundError: No module named 'pyproject_hooks'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 shellingham（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import shellingham'\n输出: ModuleNotFoundError: No module named 'shellingham'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 tomlkit（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import tomlkit'\n输出: ModuleNotFoundError: No module named 'tomlkit'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [tool.poetry.group.test.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest\n输出: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1 (poetry-core): 成立，import poetry.core 报 ModuleNotFoundError\n- 指控2 (poetry-plugin-export): 成立，import poetry_plugin_export 报 ModuleNotFoundError\n- 指控3 (build): 成立，import build 报 ModuleNotFoundError\n- 指控4 (cachecontrol): 成立，import cachecontrol 报 ModuleNotFoundError\n- 指控5 (cleo): 成立，import cleo 报 ModuleNotFoundError\n- 指控6 (dulwich): 成立，import dulwich 报 ModuleNotFoundError\n- 指控7 (installer): 成立，import installer 报 ModuleNotFoundError\n- 指控8 (keyring): 成立，import keyring 报 ModuleNotFoundError\n- 指控9 (pexpect): 成立，import pexpect 报 ModuleNotFoundError\n- 指控10 (pkginfo): 成立，import pkginfo 报 ModuleNotFoundError\n- 指控11 (pyproject-hooks): 成立，import pyproject_hooks 报 ModuleNotFoundError\n- 指控12 (shellingham): 成立，import shellingham 报 ModuleNotFoundError\n- 指控13 (tomlkit): 成立，import tomlkit 报 ModuleNotFoundError\n- 指控14 (pytest): 成立，pytest 模块不可用\n\n所有依赖均在 pyproject.toml 的 [tool.poetry.dependencies] 或 [tool.poetry.group.test.dependencies] 中声明，属于核心依赖或测试依赖，非可选依赖。环境中未安装任何这些包，Setup Agent 未能完成依赖安装任务。"
+  },
+  {
+    "repo": "adaptix",
+    "full": "reagento/adaptix",
+    "repo_url": "https://github.com/reagento/adaptix",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest，导致无法运行测试套件（来源：requirements/test_extra_none.txt 声明 pytest==7.4.2）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q --timeout=60\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：检察官指控 Setup Agent 未安装 pytest。经验证：(1) pytest 确实未安装，但它位于 requirements/test_extra_none.txt 测试依赖文件中；(2) pyproject.toml 的 [project] dependencies 只声明了 exceptiongroup 和 astunparse 作为核心依赖，未包含 pytest；(3) 核心包 adaptix 可以正常导入。测试依赖不属于 Setup Agent 必须安装的核心依赖范围，因此该指控不成立。"
+  },
+  {
+    "repo": "importlib_metadata",
+    "full": "python/importlib_metadata",
+    "repo_url": "https://github.com/python/importlib_metadata",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "robotframework",
+    "full": "robotframework/robotframework",
+    "repo_url": "https://github.com/robotframework/robotframework",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心测试依赖 jsonschema（来源：utest/requirements.txt）",
+        "evidence": "命令: python3 -c \"import jsonschema\"\n输出: ModuleNotFoundError: No module named 'jsonschema'\n\n命令: python3 utest/run.py\n输出: ModuleNotFoundError: No module named 'jsonschema'\n测试无法运行"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1：我亲自验证 /opt/conda/bin/python3 -c 'import jsonschema' 确实报 ModuleNotFoundError。utest/requirements.txt 确认 jsonschema 是单元测试所需依赖。虽然这不是核心功能依赖（setup.py 无 install_requires），但它是测试运行的必要依赖，且不属于驳回情形（非 extras 依赖、非外部服务问题、非检察官用错包名）。Setup Agent 未安装测试依赖导致测试无法运行，指控成立。"
+  },
+  {
+    "repo": "ilamb",
+    "full": "rubisco-sfa/ilamb",
+    "repo_url": "https://github.com/rubisco-sfa/ilamb",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "skrub",
+    "full": "skrub-data/skrub",
+    "repo_url": "https://github.com/skrub-data/skrub",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 安装了不兼容的依赖版本，导致 174 个测试失败",
+        "evidence": "pyproject.toml 声明 requires-python = \">=3.9\" 且 classifiers 显示支持 Python 3.9-3.12，但环境使用 Python 3.13.2。pandas 3.0.2 的行为与测试预期不符（如 datetime64 精度变化、时区转换行为变化）。命令: /opt/conda/bin/python3 -m pytest skrub/tests --tb=line -q\n输出: 174 failed, 798 passed, 180 skipped, 22 xfailed, 2 xpassed"
+      },
+      {
+        "claim": "Setup Agent 未正确约束依赖版本上限，导致兼容性问题",
+        "evidence": "pyproject.toml 声明 pandas>=1.5.3 无上限，但 pandas 3.0.2 引入不兼容变更。命令: /opt/conda/bin/python3 -c \"import pandas; print(pandas.__version__)\"\n输出: 3.0.2"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条分析：\n\n指控1（测试失败）：我亲自验证确认 174 个测试确实失败，但失败原因是 pandas 3.0.2 的行为变化（如 datetime64 精度、时区转换）。然而，pyproject.toml 声明 requires-python=\">=3.9\" 且 pandas>=1.5.3 无上限，Setup Agent 按照项目声明安装依赖是正确行为。测试失败是项目本身需要解决的兼容性问题（项目 classifiers 只声明支持到 Python 3.12，但 requires-python 允许 3.13），非 Setup Agent 失职。\n\n指控2（未约束版本上限）：我验证确认 pyproject.toml 中 pandas 确实只声明>=1.5.3 无上限。Setup Agent 的职责是遵循项目声明的依赖约束，不应自行添加版本上限。这是项目维护者的配置决策，不是 Setup Agent 的失职。\n\n综合裁决：两条指控均驳回，因为 Setup Agent 正确遵循了 pyproject.toml 的依赖声明，测试失败和兼容性问题源于项目本身的依赖配置，非环境配置工具的失职。"
+  },
+  {
+    "repo": "connexion",
+    "full": "spec-first/connexion",
+    "repo_url": "https://github.com/spec-first/connexion",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 asgiref（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import asgiref'\n输出: ModuleNotFoundError: No module named 'asgiref'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 clickclick（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import clickclick'\n输出: ModuleNotFoundError: No module named 'clickclick'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 httpx（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import httpx'\n输出: ModuleNotFoundError: No module named 'httpx'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 inflection（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import inflection'\n输出: ModuleNotFoundError: No module named 'inflection'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 jsonschema（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import jsonschema'\n输出: ModuleNotFoundError: No module named 'jsonschema'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 python-multipart（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import multipart'\n输出: ModuleNotFoundError: No module named 'multipart'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 PyYAML（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import yaml'\n输出: ModuleNotFoundError: No module named 'yaml'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 starlette（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import starlette'\n输出: ModuleNotFoundError: No module named 'starlette'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [tool.poetry.group.tests.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：指控1 (asgiref) 成立 - 亲自验证确认 ModuleNotFoundError，且为 pyproject.toml 核心依赖；指控2 (clickclick) 驳回 - clickclick 不在 pyproject.toml 任何依赖列表中，检察官指控依据错误；指控3 (httpx) 成立 - 亲自验证确认不可导入，为核心依赖；指控4 (inflection) 成立 - 亲自验证确认不可导入，为核心依赖；指控5 (jsonschema) 成立 - 亲自验证确认不可导入，为核心依赖；指控6 (python-multipart) 成立 - 亲自验证确认不可导入，为核心依赖；指控7 (PyYAML) 成立 - 亲自验证确认不可导入，为核心依赖；指控8 (starlette) 成立 - 亲自验证确认不可导入，为核心依赖；指控9 (pytest) 成立 - 亲自验证确认不可用，为测试依赖。综合：8条指控成立，1条驳回，裁决 guilty。"
+  },
+  {
+    "repo": "sphinx-gallery",
+    "full": "sphinx-gallery/sphinx-gallery",
+    "repo_url": "https://github.com/sphinx-gallery/sphinx-gallery",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的环境导致测试失败：test_only_warn_on_example_error_sphinx_warning 未能按预期抛出 SphinxWarning 异常",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q 2>&1 | tail -100\n输出: FAILED sphinx_gallery/tests/test_gen_gallery.py::test_only_warn_on_example_error_sphinx_warning - Failed: DID NOT RAISE <class 'sphinx.errors.SphinxWarning'>\n总结: 1 failed, 220 passed, 1 skipped"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "指控1 驳回：亲自验证确认 sphinx (v9.1.0) 和 sphinx_gallery (v0.17.dev0) 都能正常导入。测试失败原因是 'DID NOT RAISE <class 'sphinx.errors.SphinxWarning>'，即测试期望的异常未抛出。这是测试逻辑/版本兼容性问题，而非依赖缺失或编译失败。根据判定标准，'失败原因是外部服务/网络/测试逻辑，非 Setup Agent 失职' 应驳回。"
+  },
+  {
+    "repo": "luigi",
+    "full": "spotify/luigi",
+    "repo_url": "https://github.com/spotify/luigi",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：tox.ini [testenv] deps = pytest<7.0）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 mock（来源：tox.ini [testenv] deps = mock<2.0）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import mock'\n输出: ModuleNotFoundError: No module named 'mock'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 moto（来源：tox.ini [testenv] deps = moto>=1.3.10,<5.0）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import moto'\n输出: ModuleNotFoundError: No module named 'moto'"
+      }
+    ],
+    "verdict": "not_guilty",
+    "reason": "逐条分析：指控1 (pytest)：验证确认 pytest 确实未安装，但 pytest 是 tox.ini 中的测试依赖，非 setup.py 核心依赖 (install_requires)。指控2 (mock)：同上，mock 是测试依赖。指控3 (moto)：同上，moto 是测试依赖。核心功能验证：luigi 包可正常导入 (v3.5.1)，说明核心依赖已正确安装。Setup Agent 的职责是确保核心功能可用，测试依赖通常由开发者在运行测试时单独安装。三条指控均因'依赖非核心依赖'而驳回。"
+  },
+  {
+    "repo": "supervision",
+    "full": "roboflow/supervision",
+    "repo_url": "https://github.com/roboflow/supervision",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 numpy（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import numpy'\n输出: ModuleNotFoundError: No module named 'numpy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 scipy（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import scipy'\n输出: ModuleNotFoundError: No module named 'scipy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 matplotlib（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import matplotlib'\n输出: ModuleNotFoundError: No module named 'matplotlib'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pyyaml（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import yaml'\n输出: ModuleNotFoundError: No module named 'yaml'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 defusedxml（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import defusedxml'\n输出: ModuleNotFoundError: No module named 'defusedxml'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 opencv-python-headless（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import cv2'\n输出: ModuleNotFoundError: No module named 'cv2'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pillow（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import PIL'\n输出: ModuleNotFoundError: No module named 'PIL'"
+      },
+      {
+        "claim": "Setup Agent 未安装开发依赖 pytest（来源：pyproject.toml [tool.poetry.group.dev.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --version\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1（numpy）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import numpy' 报 ModuleNotFoundError\n- 指控2（scipy）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import scipy' 报 ModuleNotFoundError\n- 指控3（matplotlib）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import matplotlib' 报 ModuleNotFoundError\n- 指控4（pyyaml）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import yaml' 报 ModuleNotFoundError\n- 指控5（defusedxml）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import defusedxml' 报 ModuleNotFoundError\n- 指控6（opencv-python-headless）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import cv2' 报 ModuleNotFoundError\n- 指控7（pillow）：成立 - 亲自验证 /opt/conda/bin/python3 -c 'import PIL' 报 ModuleNotFoundError\n- 指控8（pytest）：驳回 - pytest 是开发依赖（[tool.poetry.group.dev.dependencies]），非核心依赖，不在 Setup Agent 必须安装的核心依赖范围内\n\n综合裁决：7条核心依赖指控成立，Setup Agent 未安装 pyproject.toml 中声明的核心依赖，裁决 guilty"
+  },
+  {
+    "repo": "armi",
+    "full": "terrapower/armi",
+    "repo_url": "https://github.com/terrapower/armi",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "pypose",
+    "full": "pypose/pypose",
+    "repo_url": "https://github.com/pypose/pypose",
+    "build_ok": false,
+    "install_ok": false,
+    "prosecute": null,
+    "charges": [],
+    "verdict": null,
+    "reason": "Docker 构建失败"
+  },
+  {
+    "repo": "cellrank",
+    "full": "theislab/cellrank",
+    "repo_url": "https://github.com/theislab/cellrank",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 配置的 numpy 版本 (2.4.4) 与项目代码不兼容，导致测试无法运行",
+        "evidence": "命令: cd /data/project && /opt/conda/bin/python3 -m pytest --tb=line -q --timeout=60\n输出: ImportError while loading conftest '/data/project/tests/conftest.py'.\ntests/conftest.py:117: in <module>\n    adata_cflare=_create_cflare(backward=False),  # noqa: B008\ntests/conftest.py:52: in _create_cflare\n    vk = VelocityKernel(adata, backward=backward).compute_transition_matrix(softmax_scale=4)\nsrc/cellrank/kernels/_velocity_kernel.py:63: in __init__\n    super().__init__(\nsrc/cellrank/kernels/mixins/_kernel.py:71: in __init__\n    super().__init__(*args, **kwargs)\nsrc/cellrank/kernels/_velocity_kernel.py:93: in __init__\n    np.testing.assert_array_equal(\nE   TypeError: assert_array_equal() got an unexpected keyword argument 'x'\n\nnumpy 2.x 中 assert_array_equal 不再接受 x= y= 关键字参数，但项目代码使用了该语法。pyproject.toml 声明 numpy>=1.22.0 无上限，Setup Agent 安装了 2.4.4 导致不兼容。"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认：(1) 当前环境 numpy 版本为 2.4.4；(2) 项目代码 /data/project/src/cellrank/kernels/_velocity_kernel.py 中使用了 np.testing.assert_array_equal(x=..., y=...) 关键字参数语法；(3) 在 numpy 2.4.4 下直接测试该语法确实报 TypeError；(4) 运行 pytest 确认测试因该兼容性问题失败。pyproject.toml 声明 numpy>=1.22.0 无上限，但项目代码实际只兼容 numpy 1.x，Setup Agent 应安装兼容版本却安装了 2.4.4，属于依赖解析失职。"
+  },
+  {
+    "repo": "tmuxp",
+    "full": "tmux-python/tmuxp",
+    "repo_url": "https://github.com/tmux-python/tmuxp",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 libtmux（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import libtmux\"\n输出: ModuleNotFoundError: No module named 'libtmux'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 colorama（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import colorama\"\n输出: ModuleNotFoundError: No module named 'colorama'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 PyYAML（来源：pyproject.toml [tool.poetry.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import yaml\"\n输出: ModuleNotFoundError: No module named 'yaml'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [tool.poetry.group.test.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：指控1（libtmux）成立 - pip show 显示未安装，import libtmux 报 ModuleNotFoundError；指控2（colorama）成立 - pip show 显示未安装，import colorama 报 ModuleNotFoundError；指控3（PyYAML）成立 - pip show 显示未安装，import yaml 报 ModuleNotFoundError；指控4（pytest）成立 - pip show 显示未安装，-m pytest 报 No module named pytest。以上依赖均在 pyproject.toml 中声明（前3个为核心依赖，第4个为测试依赖），Setup Agent 未能安装这些依赖，导致环境不可用。"
+  },
+  {
+    "repo": "aiogram_dialog",
+    "full": "tishka17/aiogram_dialog",
+    "repo_url": "https://github.com/tishka17/aiogram_dialog",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "scvelo",
+    "full": "theislab/scvelo",
+    "repo_url": "https://github.com/theislab/scvelo",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": false,
+    "charges": [],
+    "verdict": "not_guilty",
+    "reason": "检察官未起诉"
+  },
+  {
+    "repo": "python-holidays",
+    "full": "vacanza/python-holidays",
+    "repo_url": "https://github.com/vacanza/python-holidays",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 python-dateutil（来源：pyproject.toml [project.dependencies] 和 requirements/runtime.txt）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import dateutil'\n输出: ModuleNotFoundError: No module named 'dateutil'\n\n命令: /opt/conda/bin/python3 -c 'import holidays'\n输出: ModuleNotFoundError: No module named 'dateutil' (holidays 内部依赖 dateutil)"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1 成立：亲自验证确认核心依赖缺失。pyproject.toml 中 [project].dependencies 明确列出 python-dateutil 为核心依赖，使用检察官相同的解释器 /opt/conda/bin/python3 执行 import dateutil 确实报 ModuleNotFoundError。Setup Agent 未安装核心依赖，导致项目无法正常使用。"
+  },
+  {
+    "repo": "tortoise-orm",
+    "full": "tortoise/tortoise-orm",
+    "repo_url": "https://github.com/tortoise/tortoise-orm",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 pypika-tortoise（来源：pyproject.toml [tool.poetry.dependencies] pypika-tortoise = \"^0.1.6\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import pypika\"\n输出: ModuleNotFoundError: No module named 'pypika'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 iso8601（来源：pyproject.toml [tool.poetry.dependencies] iso8601 = \"^1.0.2\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import iso8601\"\n输出: ModuleNotFoundError: No module named 'iso8601'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 aiosqlite（来源：pyproject.toml [tool.poetry.dependencies] aiosqlite = \">=0.16.0, <0.18.0\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import aiosqlite\"\n输出: ModuleNotFoundError: No module named 'aiosqlite'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 pytz（来源：pyproject.toml [tool.poetry.dependencies] pytz = \"*\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -c \"import pytz\"\n输出: ModuleNotFoundError: No module named 'pytz'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试工具 pytest，导致无法运行测试套件（来源：pyproject.toml [tool.poetry.dev-dependencies] pytest = \"*\"）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest --tb=line -q --timeout=60\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证结果：\n- 指控1（pypika-tortoise）：成立。pip show 确认未安装，import pypika 和 import pypika_tortoise 均报 ModuleNotFoundError。这是核心依赖，非 optional。\n- 指控2（iso8601）：成立。pip show 确认未安装，import iso8601 报 ModuleNotFoundError。这是核心依赖，非 optional。\n- 指控3（aiosqlite）：成立。pip show 确认未安装，import aiosqlite 报 ModuleNotFoundError。这是核心依赖，非 optional。\n- 指控4（pytz）：成立。pip show 确认未安装，import pytz 报 ModuleNotFoundError。这是核心依赖，非 optional。\n- 指控5（pytest）：成立。pip show 确认未安装，pytest 命令报 No module named pytest。这是 dev-dependencies，但确实导致测试无法运行。\n\n综合裁决：5条指控全部成立，Setup Agent 未能安装项目的核心依赖和测试工具，裁决 guilty。"
+  },
+  {
+    "repo": "fastapi-pagination",
+    "full": "uriyyo/fastapi-pagination",
+    "repo_url": "https://github.com/uriyyo/fastapi-pagination",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装测试依赖（来源：pyproject.toml [tool.poetry.dev-dependencies] 中的 pytest、pytest-asyncio、pytest-cov 等）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import pytest'\n输出: ModuleNotFoundError: No module named 'pytest'\n\n命令: /opt/conda/bin/python3 -m pytest --collect-only -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认 pytest 未安装。pyproject.toml 中 pytest 明确列在 [tool.poetry.dev-dependencies] 中，这是标准开发依赖而非可选 extras。Setup Agent 应安装开发依赖以支持测试运行，但实际环境中 pytest 不可用，导致无法执行测试。"
+  },
+  {
+    "repo": "xknx",
+    "full": "xknx/xknx",
+    "repo_url": "https://github.com/xknx/xknx",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 ifaddr（来源：pyproject.toml [project.dependencies] 和 requirements/production.txt）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import ifaddr'\n输出: ModuleNotFoundError: No module named 'ifaddr'\n\n命令: /opt/conda/bin/python3 -c 'import xknx'\n输出: ModuleNotFoundError: No module named 'ifaddr' (在 xknx/io/util.py 中导入失败)\n\npyproject.toml 声明: dependencies = [\"async_timeout>=4.0.0; python_version<'3.11'\", \"cryptography>=35.0.0\", \"ifaddr>=0.1.7\"]\nrequirements/production.txt 声明: ifaddr==0.2.0"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1 成立：亲自验证确认 (1) pip show ifaddr 显示包未安装；(2) python3 -c 'import ifaddr' 报 ModuleNotFoundError；(3) pyproject.toml 中 ifaddr 在核心 dependencies 数组中，非可选依赖；(4) python3 -c 'import xknx' 因缺少 ifaddr 在 xknx/io/util.py 中导入失败。Setup Agent 未安装核心依赖，导致项目无法使用。"
+  },
+  {
+    "repo": "django-autocomplete-light",
+    "full": "yourlabs/django-autocomplete-light",
+    "repo_url": "https://github.com/yourlabs/django-autocomplete-light",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 安装的 Django 版本 (6.0.3) 与项目代码不兼容，导致测试无法运行。代码使用 `django.utils.itercompat` 模块，该模块在 Django 4.0+ 已被移除。setup.py 仅声明 `django>=3.2` 未指定上限，但实际代码不兼容高版本 Django。",
+        "evidence": "命令: cd /data/project/test_project && DJANGO_SETTINGS_MODULE=settings.base /opt/conda/bin/python3 -m pytest --tb=line -q --timeout=60 2>&1 | tail -80\n输出: ModuleNotFoundError: No module named 'django.utils.itercompat'\n\n命令: /opt/conda/bin/python3 -c \"import django; print(django.__version__)\"\n输出: 6.0.3"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认 - 1) Django 6.0.3 已安装 2) from django.utils import itercompat 确实报 ImportError 3) 项目源码 /data/project/src/dal_select2/widgets.py 确实使用了该已移除模块 4) setup.py 的 install_requires 仅声明 django>=3.2 无上限，但 classifiers 明确列出支持版本仅到 Django 5.0（不含 6.0）。Setup Agent 安装了超出项目声明支持范围的 Django 版本，导致核心代码无法导入，属于配置失职。"
+  },
+  {
+    "repo": "unyt",
+    "full": "yt-project/unyt",
+    "repo_url": "https://github.com/yt-project/unyt",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装核心依赖 numpy（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import numpy'\n输出: ModuleNotFoundError: No module named 'numpy'"
+      },
+      {
+        "claim": "Setup Agent 未安装核心依赖 sympy（来源：pyproject.toml [project.dependencies]）",
+        "evidence": "命令: /opt/conda/bin/python3 -c 'import sympy'\n输出: ModuleNotFoundError: No module named 'sympy'"
+      },
+      {
+        "claim": "Setup Agent 未安装测试依赖 pytest（来源：pyproject.toml [tool.pytest.ini_options] 表明项目使用 pytest）",
+        "evidence": "命令: /opt/conda/bin/python3 -m pytest\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "逐条验证：\n- 指控1（numpy）：成立。亲自验证 /opt/conda/bin/python3 -c 'import numpy' 报 ModuleNotFoundError。numpy 在 pyproject.toml [project.dependencies] 中声明为核心依赖。\n- 指控2（sympy）：成立。亲自验证 /opt/conda/bin/python3 -c 'import sympy' 报 ModuleNotFoundError。sympy 在 pyproject.toml [project.dependencies] 中声明为核心依赖。\n- 指控3（pytest）：驳回。pytest 不在 [project.dependencies] 中，而是测试依赖（在 tox.ini [testenv] deps 中声明）。Setup Agent 职责是安装核心依赖，测试依赖不属于核心安装范围。\n综合：≥1 条指控成立，裁决 guilty。"
+  },
+  {
+    "repo": "kh2randomizer",
+    "full": "tommadness/kh2randomizer",
+    "repo_url": "https://github.com/tommadness/kh2randomizer",
+    "build_ok": true,
+    "install_ok": true,
+    "prosecute": true,
+    "charges": [
+      {
+        "claim": "Setup Agent 未安装 requirements.txt 中声明的核心依赖（如 altgraph, bitstring, numpy, pillow, PySide6 等）",
+        "evidence": "依赖声明: /data/project/requirements.txt 包含 altgraph==0.17.2, bitstring==3.1.9, numpy==1.25.2, pillow==9.3.0, PySide6==6.2.1 等17个包\n取证命令: /opt/conda/bin/python3 -c \"import altgraph\"\n输出: ModuleNotFoundError: No module named 'altgraph'\n\n取证命令: /opt/conda/bin/python3 -m pip list\n输出: 仅显示基础包和conda相关包，无requirements.txt中声明的核心依赖\n\n取证命令: cat /data/project/SETUP_AND_INSTALL.sh\n输出: pip install -r requirements.txt 命令被注释掉（# pip install -r requirements.txt）"
+      },
+      {
+        "claim": "Setup Agent 未安装测试框架 pytest，导致测试套件无法运行",
+        "evidence": "取证命令: /opt/conda/bin/python3 -m pytest --tb=line -q\n输出: /opt/conda/bin/python3: No module named pytest"
+      }
+    ],
+    "verdict": "guilty",
+    "reason": "指控1成立：亲自验证确认 altgraph 等 requirements.txt 中声明的核心依赖未安装（pip show altgraph 返回 Package(s) not found），且 SETUP_AND_INSTALL.sh 中 pip install -r requirements.txt 命令被注释掉，导致依赖未安装。指控2驳回：虽然 pytest 未安装，但检查 tests 目录发现所有测试文件使用 unittest 框架（import unittest，继承 unittest.TestCase），没有使用 pytest 的导入语句，因此 pytest 不是该项目的必需依赖，检察官对项目测试框架判断错误。综合：至少1条指控成立，裁决 guilty。"
+  }
+]

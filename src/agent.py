@@ -72,15 +72,18 @@ class SpeculativeSetupAgent:
         # 初始化 LLM 推理引擎（ARK 或 OpenAI 兼容接口）
         self._llm: LLMEngine = LLMEngine()
 
-        # 初始化 Retriever Agent（仅在 VectorXPUClient 时启用）
+        # 初始化 Retriever Agent（仅在 VectorXPUClient 时启用，消融实验可通过 XPU_RETRIEVER_DISABLED 关闭）
         # Retriever Agent 在独立上下文中进行两层检索 + 延迟审计
         self._retriever: RetrieverAgent | None = None
-        if isinstance(self._xpu, VectorXPUClient):
+        if isinstance(self._xpu, VectorXPUClient) and not get_config().xpu.retriever_disabled:
             self._retriever = RetrieverAgent(
                 vector_store=self._xpu._store,
                 llm_client=self._llm._client,
+                audit_disabled=get_config().xpu.audit_disabled,
             )
             logger.info("RetrieverAgent 已启用（VectorXPUClient 模式）")
+        elif isinstance(self._xpu, VectorXPUClient) and get_config().xpu.retriever_disabled:
+            logger.info("RetrieverAgent 已禁用（消融实验：XPU_RETRIEVER_DISABLED=true）")
 
         # 缓存当前步骤检索到的 XPU 建议，供 TRY_XPU_SUGGESTION 动作查找使用
         self._current_xpu_suggestions: list[XPUSuggestion] = []
@@ -165,7 +168,20 @@ class SpeculativeSetupAgent:
 
             logger.info(f"决策: {action}")
 
-            # --- 2d. 执行（Execution）---
+            # --- 2d. 重复命令检测 ---
+            # 如果同一条 SHELL_COMMAND 连续出现 3 次，强制结束，防止死循环耗尽步数
+            if action.action_type == ActionType.SHELL_COMMAND and action.command:
+                recent_cmds = [
+                    e.get("action", {}).get("content", {}).get("command", "")
+                    for e in self._state.history[-5:]
+                    if e.get("action", {}).get("action_type") == ActionType.SHELL_COMMAND.value
+                ]
+                if recent_cmds.count(action.command) >= 3:
+                    logger.warning(f"检测到重复命令（连续 ≥3 次），强制结束: {action.command[:80]}")
+                    self._state.final_message = f"重复命令检测：同一命令执行 ≥3 次仍未解决，放弃: {action.command[:80]}"
+                    break
+
+            # --- 2e. 执行（Execution）---
             # 根据 LLM 输出的动作类型，分发到对应的处理函数
             if action.action_type == ActionType.SHELL_COMMAND:
                 # 直接执行 shell 命令

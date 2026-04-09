@@ -248,18 +248,23 @@ class RetrieverAgent:
       └── LastXPURecord：上次 XPU 使用记录（延迟审计）
     """
 
-    def __init__(self, vector_store, llm_client):
+    def __init__(self, vector_store, llm_client, audit_disabled: bool = False):
         """初始化 Retriever Agent
 
         Args:
             vector_store: XpuVectorStore 实例（向量数据库）
             llm_client: LLMClientBase 实例（LLM 客户端，用于精读和审计）
+            audit_disabled: 消融实验开关，为 True 时跳过延迟审计（env: XPU_AUDIT_DISABLED）
         """
         self._store = vector_store
         self._llm = llm_client
+        self._audit_disabled = audit_disabled
         # 上次 XPU 使用记录，用于延迟审计
         self._last_xpu_record: LastXPURecord | None = None
-        logger.info("RetrieverAgent 初始化完成")
+        if audit_disabled:
+            logger.info("RetrieverAgent 初始化完成（延迟审计已禁用，消融实验模式）")
+        else:
+            logger.info("RetrieverAgent 初始化完成")
 
     # =========================================================================
     # 对主 Agent 接口：检索 XPU 建议
@@ -293,9 +298,11 @@ class RetrieverAgent:
         """
         history = full_history or []
 
-        # === 步骤 0：延迟审计上一次推荐的 XPU ===
-        if self._last_xpu_record:
+        # === 步骤 0：延迟审计上一次推荐的 XPU（消融实验可禁用）===
+        if self._last_xpu_record and not self._audit_disabled:
             self._do_delayed_audit(history)
+        elif self._last_xpu_record and self._audit_disabled:
+            logger.info("[延迟审计] 已禁用（消融实验：XPU_AUDIT_DISABLED=true），跳过")
 
         # === 步骤 1：第一层向量粗筛 ===
         logger.info(f"[第一层] 向量粗筛，候选数 N={n_candidates}")
