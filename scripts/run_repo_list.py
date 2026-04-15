@@ -28,6 +28,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--disable-xpu", action="store_true", help="强制禁用 XPU")
     parser.add_argument("--skip-existing", action="store_true", help="跳过 log/ 下已有结果的仓库")
     parser.add_argument("--cleanup-interval", type=int, default=10, help="每跑完 N 个仓库清理一次 Docker")
+    parser.add_argument("--subprocess-timeout", type=int, default=1800, help="单仓库 subprocess 超时秒数")
     return parser.parse_args()
 
 
@@ -57,6 +58,7 @@ def run_one(
     max_steps: int,
     output_dir: Path,
     disable_xpu: bool,
+    subprocess_timeout: int = 1800,
 ) -> Tuple[str, bool, str]:
     repo = repo_obj.get("repository", "unknown/repo")
     revision = repo_obj.get("revision", "HEAD")
@@ -78,10 +80,14 @@ def run_one(
     short_name = repo.rstrip("/").split("/")[-1]
     fallback_path = Path("log") / f"{short_name}_result.json"
 
+    # 记录启动前的容器集合，超时后只杀本 worker 新增的容器，避免误杀其他 worker
+    pre_snap = subprocess.run(["docker", "ps", "-q"], capture_output=True, text=True)
+    pre_containers: set = set(pre_snap.stdout.split()) if pre_snap.returncode == 0 else set()
+
     try:
         with log_path.open("w", encoding="utf-8") as fp:
-            result = subprocess.run(cmd, stdout=fp, stderr=fp, env=env, timeout=1800)
-        return repo, result.returncode == 0, str(log_path)
+            proc_result = subprocess.run(cmd, stdout=fp, stderr=fp, env=env, timeout=subprocess_timeout)
+        return repo, proc_result.returncode == 0, str(log_path)
     except subprocess.TimeoutExpired:
         reason = "subprocess 超时 (1800s)"
     except Exception as e:
@@ -96,15 +102,25 @@ def run_one(
             "setup": {"completed": False, "steps_taken": -1, "final_message": reason},
             "phase2": {"success": False, "reason": reason},
         }, fallback_path.open("w"), ensure_ascii=False, indent=2)
-    # 清理残留容器
+    # 只清理本次新增的容器，不误杀其他 worker 的容器
+    post_snap = subprocess.run(["docker", "ps", "-q"], capture_output=True, text=True)
+    if post_snap.returncode == 0:
+        new_containers = set(post_snap.stdout.split()) - pre_containers
+        for cid in new_containers:
+            subprocess.run(["docker", "kill", cid], capture_output=True)
     subprocess.run(["docker", "container", "prune", "-f"], capture_output=True)
     return repo, False, str(log_path)
 
 
 def docker_cleanup() -> None:
-    """清理停止的容器 + 悬空镜像，释放磁盘"""
-    subprocess.run(["docker", "container", "prune", "-f"], capture_output=True)
-    subprocess.run(["docker", "image", "prune", "-f"], capture_output=True)
+    """安全清理：只删除已停止的 python:3.10 实验容器，不动其他容器和镜像"""
+    result = subprocess.run(
+        ["docker", "ps", "-a", "-q", "--filter", "status=exited", "--filter", "ancestor=python:3.10"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        for cid in result.stdout.strip().split():
+            subprocess.run(["docker", "rm", cid], capture_output=True)
 
 
 def format_progress(done: int, total: int, ok: int, fail: int) -> str:
@@ -152,7 +168,7 @@ def main() -> int:
 
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = [
-            executor.submit(run_one, repo, args.max_steps, output_dir, args.disable_xpu)
+            executor.submit(run_one, repo, args.max_steps, output_dir, args.disable_xpu, args.subprocess_timeout)
             for repo in repos
         ]
 

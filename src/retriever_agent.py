@@ -92,8 +92,8 @@ class LastXPURecord:
 # Retriever Agent 核心类
 # =============================================================================
 
-# LLM 精读筛选 Prompt
-REFINE_PROMPT = """你是一个 XPU 经验检索助手。你的任务是从候选 XPU 经验列表中，筛选出与当前部署情境最匹配的 Top-K 条建议。
+# LLM 精读筛选 Prompt（旧版选择器，已弃用）
+_REFINE_PROMPT_SELECTOR = """你是一个 XPU 经验检索助手。你的任务是从候选 XPU 经验列表中，筛选出与当前部署情境最匹配的 Top-K 条建议。
 
 ## 当前部署情境
 {situation}
@@ -118,6 +118,42 @@ REFINE_PROMPT = """你是一个 XPU 经验检索助手。你的任务是从候�
     }}
   ]
 }}
+"""
+
+# LLM 合成 Prompt（新版合成器）
+SYNTHESIZE_PROMPT = """你是一个 Python 项目环境配置专家。你的任务是根据多条历史经验，为当前部署困境合成一条**具体可执行的行动方案**。
+
+## 当前部署情境
+{situation}
+
+## 相关历史经验（共 {n_candidates} 条，来自知识库，可能不完全适用于当前场景）
+{candidates_text}
+
+## 合成规则
+1. **融合而非选择**：如果多条经验的建议可以组合（例如一条说"装 python3-dev"，另一条说"装 build-essential"），合并为一条完整的行动方案
+2. **适配当前上下文**：根据当前的错误信息和已执行的命令，调整建议。例如如果已经装过 pip，就不要再建议安装 pip
+3. **生成可执行命令**：行动方案必须包含具体的 shell 命令，不要只给抽象建议
+4. **处理冲突**：如果多条经验的建议相互矛盾（例如一个建议降级 setuptools，另一个建议升级），根据当前错误信息判断哪个更合理
+5. **不相关的直接忽略**：如果某条经验跟当前问题完全无关，不要纳入合成
+
+你必须以 JSON 格式回复：
+{{
+  "synthesized": [
+    {{
+      "description": "一句话说明这条行动方案要解决什么问题",
+      "commands": ["apt-get update && apt-get install -y python3-dev build-essential", "pip install -e ."],
+      "reasoning": "综合了经验 X 和 Y，因为当前错误表明缺少编译工具链",
+      "source_xpu_ids": ["xpu_id_1", "xpu_id_2"],
+      "confidence": 0.85
+    }}
+  ]
+}}
+
+注意：
+- synthesized 数组中最多 {k} 条行动方案，按优先级排序
+- 每条方案的 commands 必须是可以直接在容器中执行的 shell 命令
+- source_xpu_ids 列出合成所参考的原始经验 ID
+- 如果所有经验都不相关，返回 {{"synthesized": []}}
 """
 
 # LLM 审计 Prompt
@@ -299,20 +335,32 @@ class RetrieverAgent:
         history = full_history or []
 
         # === 步骤 0：延迟审计上一次推荐的 XPU（消融实验可禁用）===
+        last_audit: list[AuditVerdict] = []
         if self._last_xpu_record and not self._audit_disabled:
-            self._do_delayed_audit(history)
+            last_audit = self._do_delayed_audit(history)
         elif self._last_xpu_record and self._audit_disabled:
             logger.info("[延迟审计] 已禁用（消融实验：XPU_AUDIT_DISABLED=true），跳过")
 
         # === 步骤 1：第一层向量粗筛 ===
-        logger.info(f"[第一层] 向量粗筛，候选数 N={n_candidates}")
+        # 将 synth_* ID 转换回原始 XPU ID，确保向量检索能正确排除已尝试的经验
+        real_exclude_ids = []
+        if exclude_ids:
+            for eid in exclude_ids:
+                if eid.startswith("synth_") and "__" in eid:
+                    # synth_0__xpu_id1_xpu_id2 → 提取原始 ID
+                    real_exclude_ids.extend(eid.split("__", 1)[1].split("_"))
+                else:
+                    real_exclude_ids.append(eid)
+            real_exclude_ids = [x for x in real_exclude_ids if x and not x.startswith("synth")]
+
+        logger.info(f"[第一层] 向量粗筛，候选数 N={n_candidates}，排除 {len(real_exclude_ids)} 个已尝试的 XPU")
         try:
             from .xpu.xpu_vector_store import text_to_embedding
             embedding = text_to_embedding(situation)
             candidates = self._store.search(
                 embedding,
                 k=n_candidates,
-                exclude_ids=exclude_ids,
+                exclude_ids=real_exclude_ids or None,
             )
         except Exception as e:
             logger.warning(f"向量检索失败: {e}")
@@ -324,17 +372,24 @@ class RetrieverAgent:
 
         logger.info(f"[第一层] 找到 {len(candidates)} 条候选")
 
-        # === 步骤 2：第二层 LLM 精读筛选 ===
-        suggestions = self._refine_with_llm(situation, candidates, k)
+        # === 步骤 2：第二层 LLM 合成行动方案 ===
+        suggestions = self._refine_with_llm(situation, candidates, k, last_audit)
 
-        # 批量更新 hits 计数（所有最终返回的 XPU）
+        # 批量更新 hits 计数（追踪合成所引用的原始 XPU ID）
         if suggestions:
-            try:
-                self._store.increment_telemetry(
-                    [s.id for s in suggestions], "hits"
-                )
-            except Exception as e:
-                logger.warning(f"更新 hits 计数失败: {e}")
+            source_ids = set()
+            for s in suggestions:
+                # synth_0__xpu_id1_xpu_id2 → 提取 source ids
+                parts = s.id.split("__", 1)
+                if len(parts) == 2:
+                    source_ids.update(parts[1].split("_"))
+            # 过滤掉无效 ID（空字符串等）
+            valid_ids = [sid for sid in source_ids if sid and not sid.startswith("synth")]
+            if valid_ids:
+                try:
+                    self._store.increment_telemetry(valid_ids, "hits")
+                except Exception as e:
+                    logger.warning(f"更新 hits 计数失败: {e}")
 
         # === 步骤 3：自动记录本次推荐，供下次延迟审计 ===
         if suggestions:
@@ -342,15 +397,15 @@ class RetrieverAgent:
                 xpu_ids=[s.id for s in suggestions],
                 descriptions=[s.description for s in suggestions],
                 situation=situation,
-                state_before=situation,  # situation 包含了当前错误信息
-                step_index=len(history),  # 锚点：当前 history 长度
+                state_before=situation,
+                step_index=len(history),
             )
             logger.info(
-                f"记录推荐 XPU: {[s.id for s in suggestions]}，"
+                f"记录合成方案: {[s.id for s in suggestions]}，"
                 f"锚点 step_index={len(history)}，等待下次审计"
             )
 
-        logger.info(f"[第二层] 最终返回 {len(suggestions)} 条建议")
+        logger.info(f"[第二层] 最终返回 {len(suggestions)} 条合成方案")
         return suggestions
 
     # =========================================================================
@@ -362,22 +417,25 @@ class RetrieverAgent:
         situation: str,
         candidates: list[dict],
         k: int,
+        last_audit: list[AuditVerdict] | None = None,
     ) -> list[XPUSuggestion]:
-        """第二层：LLM 精读筛选候选 XPU
+        """第二层：LLM 合成行动方案
 
-        将所有候选打包成一个 prompt，一次 LLM 调用完成筛选。
+        将所有候选 + 当前情境 + 上次审计反馈打包成一个 prompt，LLM 融合多条经验后
+        生成适配当前场景的具体可执行建议（而非简单选择原始条目）。
 
         Args:
             situation: 当前部署情境
             candidates: 第一层粗筛的候选列表
-            k: 最终选取数
+            k: 最终生成的行动方案数
+            last_audit: 上次建议的审计结果（告知 LLM 哪些路已经走不通）
 
         Returns:
-            筛选后的 XPUSuggestion 列表
+            合成后的 XPUSuggestion 列表
         """
         from .xpu.xpu_adapter import XpuAtom, render_atom_to_commands
 
-        # 构造候选列表文本
+        # 构造候选列表文本（给 LLM 看的，包含原始建议和命令）
         candidate_lines = []
         candidate_map = {}  # xpu_id → 原始候选数据
         for i, c in enumerate(candidates):
@@ -389,15 +447,23 @@ class RetrieverAgent:
             advice = c.get("advice_nl") or []
             advice_text = " | ".join(advice) if isinstance(advice, list) else str(advice)
 
+            # 渲染原始 atoms 为命令，让 LLM 能看到具体操作
+            atoms = c.get("atoms") or []
+            commands = []
+            for a in atoms:
+                atom = XpuAtom(name=a.get("name", ""), args=a.get("args", {}))
+                commands.extend(render_atom_to_commands(atom))
+            commands_text = "\n    ".join(commands) if commands else "（无具体命令）"
+
             similarity = c.get("similarity", 0)
-            composite = c.get("composite_score", similarity)
             tier = c.get("tier", "normal")
             tier_label = {"golden": "★ 高质量", "normal": "普通", "cold": "▽ 低活跃"}.get(tier, tier)
 
             line = (
                 f"[{i+1}] ID: {c['id']}  质量等级: {tier_label}\n"
                 f"    建议: {advice_text}\n"
-                f"    相似度: {similarity:.3f}, 复合分: {composite:.3f}\n"
+                f"    原始命令:\n    {commands_text}\n"
+                f"    相似度: {similarity:.3f}\n"
                 f"    历史统计: 命中 {hits} 次, 成功 {successes} 次, 失败 {failures} 次"
             )
             candidate_lines.append(line)
@@ -406,66 +472,80 @@ class RetrieverAgent:
         candidates_text = "\n\n".join(candidate_lines)
 
         # 构造 LLM 消息
-        prompt = REFINE_PROMPT.format(
+        prompt = SYNTHESIZE_PROMPT.format(
             situation=situation,
             n_candidates=len(candidates),
             candidates_text=candidates_text,
             k=k,
         )
 
+        # 注入上次审计反馈：告诉 LLM 哪些方向已经失败，不要重复
+        audit_context = ""
+        if last_audit:
+            failed = [v for v in last_audit if v.score < -0.2]
+            if failed:
+                lines = []
+                for v in failed:
+                    lines.append(f"- {v.xpu_id}: {v.reason}（评分 {v.score:.2f}）")
+                audit_context = (
+                    "\n\n## ⚠ 上次建议的执行反馈（刚刚失败的，必须避开）\n"
+                    "以下建议方向在本次 session 中已经尝试过且失败了，请勿再生成类似方案：\n"
+                    + "\n".join(lines)
+                )
+                prompt += audit_context
+                logger.info(f"[合成] 注入 {len(failed)} 条失败审计反馈到 prompt")
+
         messages = [
             {"role": "system", "content": prompt},
-            {"role": "user", "content": "请从候选列表中筛选最匹配的 XPU 建议。"},
+            {"role": "user", "content": "请根据上述历史经验，为当前部署困境合成具体的行动方案。"},
         ]
 
-        logger.info(f"[第二层] 调用 LLM 精读 {len(candidates)} 条候选")
+        logger.info(f"[第二层] 调用 LLM 合成 {len(candidates)} 条候选 → 行动方案")
 
         try:
             response = self._llm.chat(messages, json_mode=True)
             data = self._parse_json_response(response)
         except Exception as e:
-            logger.warning(f"LLM 精读失败，回退到粗筛结果: {e}")
-            # 回退：直接用粗筛的前 k 条
+            logger.warning(f"LLM 合成失败，回退到粗筛结果: {e}")
             return self._candidates_to_suggestions(candidates[:k])
 
-        # 解析 LLM 选择结果
-        selected = data.get("selected", [])
-        if not selected:
-            logger.warning("LLM 未选择任何候选，回退到粗筛结果")
+        # 解析 LLM 合成结果
+        synthesized = data.get("synthesized", [])
+        if not synthesized:
+            logger.warning("LLM 未生成任何行动方案，回退到粗筛结果")
             return self._candidates_to_suggestions(candidates[:k])
 
-        # 按 LLM 选择顺序构造 XPUSuggestion
+        # 构造合成后的 XPUSuggestion
         suggestions = []
-        for item in selected[:k]:
-            xpu_id = item.get("xpu_id", "")
-            if xpu_id not in candidate_map:
+        for i, item in enumerate(synthesized[:k]):
+            description = item.get("description", "")
+            commands = item.get("commands", [])
+            reasoning = item.get("reasoning", "")
+            source_ids = item.get("source_xpu_ids", [])
+            confidence = float(item.get("confidence", 0.7))
+
+            if not commands:
                 continue
 
-            c = candidate_map[xpu_id]
-            reason = item.get("relevance_reason", "")
-            confidence = float(item.get("confidence", c.get("composite_score", 0.5)))
+            # 合成建议使用特殊 ID 前缀，与原始 XPU 区分
+            synth_id = f"synth_{i}__{'_'.join(source_ids[:3])}" if source_ids else f"synth_{i}"
 
-            # 渲染 atoms 为可执行命令
-            atoms = c.get("atoms") or []
-            commands = []
-            for a in atoms:
-                atom = XpuAtom(name=a.get("name", ""), args=a.get("args", {}))
-                commands.extend(render_atom_to_commands(atom))
-
-            advice = c.get("advice_nl") or []
-            advice_text = "\n".join(advice)
-            if reason:
-                description = f"[经验] {advice_text}\n[匹配理由] {reason}"
-            else:
-                description = advice_text
+            full_description = f"[合成方案] {description}"
+            if reasoning:
+                full_description += f"\n[推理] {reasoning}"
 
             suggestions.append(XPUSuggestion(
-                id=xpu_id,
-                description=description,
+                id=synth_id,
+                description=full_description,
                 commands=commands,
                 confidence=confidence,
-                source="retriever_agent",
+                source="retriever_synthesizer",
             ))
+
+            logger.info(
+                f"[合成] 方案 {i+1}: {description[:80]} "
+                f"(来源: {source_ids}, 命令数: {len(commands)})"
+            )
 
         return suggestions
 
@@ -473,7 +553,7 @@ class RetrieverAgent:
     # 内部方法：延迟审计
     # =========================================================================
 
-    def _do_delayed_audit(self, full_history: list[dict]) -> None:
+    def _do_delayed_audit(self, full_history: list[dict]) -> list[AuditVerdict]:
         """延迟审计上一次推荐的 XPU
 
         从 full_history 中按 step_index 锚点提取推荐后的后续步骤（最多 5 步），
@@ -481,10 +561,13 @@ class RetrieverAgent:
 
         Args:
             full_history: 主 Agent 的完整历史记录
+
+        Returns:
+            审计结果列表（供下次合成时参考）
         """
         record = self._last_xpu_record
         if not record:
-            return
+            return []
 
         logger.info(f"[审计] 延迟审计 XPU: {record.xpu_ids}")
 
@@ -494,7 +577,7 @@ class RetrieverAgent:
         if not subsequent_entries:
             logger.info("[审计] 推荐后无后续步骤，跳过审计")
             self._last_xpu_record = None
-            return
+            return []
 
         # 将每一步提取为摘要文本
         subsequent = []
@@ -525,6 +608,7 @@ class RetrieverAgent:
             {"role": "user", "content": "请对每条 XPU 建议分别判定效果。"},
         ]
 
+        audit_results = []
         try:
             response = self._llm.chat(messages, json_mode=True)
             data = self._parse_json_response(response)
@@ -539,12 +623,14 @@ class RetrieverAgent:
                 )
                 logger.info(f"[审计] {verdict}")
                 self._update_telemetry_from_audit(verdict)
+                audit_results.append(verdict)
 
         except Exception as e:
             logger.warning(f"[审计] LLM 审计失败: {e}")
 
         # 清除记录，避免重复审计
         self._last_xpu_record = None
+        return audit_results
 
     def _update_telemetry_from_audit(self, verdict: AuditVerdict) -> None:
         """根据审计结果更新 XPU 的 telemetry（基于 score 数值判定，而非 verdict 字符串）

@@ -202,13 +202,25 @@ def _parse_result(result_path: Path) -> dict:
 
 
 def _cleanup_new_containers(pre_containers: set) -> None:
-    """清理本次新增的容器"""
+    """清理本次新增的容器（只杀本 worker 新增的，不影响其他）"""
     post_snap = subprocess.run(["docker", "ps", "-q"], capture_output=True, text=True)
     if post_snap.returncode == 0:
         new_containers = set(post_snap.stdout.split()) - pre_containers
         for cid in new_containers:
             subprocess.run(["docker", "kill", cid], capture_output=True)
-    subprocess.run(["docker", "container", "prune", "-f"], capture_output=True)
+            subprocess.run(["docker", "rm", cid], capture_output=True)
+
+
+def _safe_docker_cleanup() -> None:
+    """安全清理：只删除已停止的 python:3.10 容器，不动其他镜像的容器"""
+    # 找到所有已退出的 python:3.10 容器
+    result = subprocess.run(
+        ["docker", "ps", "-a", "-q", "--filter", "status=exited", "--filter", "ancestor=python:3.10"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        for cid in result.stdout.strip().split():
+            subprocess.run(["docker", "rm", cid], capture_output=True)
 
 
 def load_existing(output_path: Path) -> dict[tuple[str, str], dict]:
@@ -343,14 +355,13 @@ def main() -> int:
                 status_str = result.get("status", "unknown")
                 print(f"[{done}/{len(tasks)}] {repo_name} @ {cfg}: {status_str} "
                       f"({result.get('elapsed_sec', 0)}s)")
-                # 每 5 个任务清理一次 Docker 和磁盘检查
+                # 每 5 个任务清理一次 Docker（只清理 python:3.10 实验容器，不动其他）
                 if done % 5 == 0:
-                    subprocess.run(["docker", "container", "prune", "-f"], capture_output=True)
-                    subprocess.run(["docker", "image", "prune", "-f"], capture_output=True)
+                    # 只清理已停止的 python:3.10 容器（实验用），不影响同事的容器
+                    _safe_docker_cleanup()
                     free_gb = shutil.disk_usage("/").free / (1024 ** 3)
                     if free_gb < 20:
-                        print(f"⚠ 磁盘告警：可用仅 {free_gb:.1f}Gi，执行深度清理")
-                        subprocess.run(["docker", "image", "prune", "-af"], capture_output=True)
+                        print(f"⚠ 磁盘告警：可用仅 {free_gb:.1f}Gi")
 
     print()
     print("消融实验完成")
